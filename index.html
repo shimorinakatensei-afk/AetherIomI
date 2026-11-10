@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111318" />
+  <meta name="author" content="IOMI Roman &amp; Co." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Aether — Focus Timer | IOMI Roman &amp; Co." />
+  <meta property="og:description" content="A distraction-free study timer and personal study tracker." />
+  <meta name="description" content="Aether is a distraction-free study timer and personal study tracker by IOMI Roman & Co." />
+  <title>Aether — Focus Timer | IOMI Roman &amp; Co.</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+          },
+          colors: {
+            border: 'rgba(255, 255, 255, 0.08)',
+            surface: 'rgba(255, 255, 255, 0.03)',
+            surfaceHover: 'rgba(255, 255, 255, 0.06)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-primary: #0d0e10;
+      --surface: #17191c;
+      --surface-raised: #202226;
+      --surface-hover: #292c31;
+      --text-primary: #f5f5f7;
+      --text-secondary: #b0b3ba;
+      --text-muted: #858991;
+      --border: #303238;
+      --border-soft: rgba(255,255,255,.085);
+      --accent: #a7baff;
+      --accent-soft: rgba(167,186,255,.12);
+      --accent-glow: transparent;
+      --ring-track: #303238;
+      --success: #8bc5a2;
+      --warning: #d9b875;
+      --danger: #d88f8f;
+      --radius-card: 14px;
+      --radius-control: 10px;
+      --motion: 150ms ease;
+    }
+    [data-theme="cosmos"] { --bg-primary:#0d0e10; --surface:#17191c; --surface-raised:#202226; --surface-hover:#292c31; --accent:#a7baff; --accent-soft:rgba(167,186,255,.12); --ring-track:#303238; }
+    [data-theme="slate"] { --bg-primary:#0d1110; --surface:#171d1b; --surface-raised:#202824; --surface-hover:#2a3430; --accent:#a2cbbb; --accent-soft:rgba(162,203,187,.12); --ring-track:#303c37; }
+    [data-theme="warm"] { --bg-primary:#12100e; --surface:#1c1916; --surface-raised:#28231e; --surface-hover:#342d25; --accent:#e3c18a; --accent-soft:rgba(227,193,138,.12); --ring-track:#3a332c; }
+    [data-theme="minimal"] { --bg-primary:#0b0b0c; --surface:#161719; --surface-raised:#202124; --surface-hover:#2a2b2e; --accent:#d7d9de; --accent-soft:rgba(215,217,222,.11); --ring-track:#303135; }
+
+    *, *::before, *::after { box-sizing:border-box; }
+    html { min-width:320px; background:var(--bg-primary); }
+    body {
+      min-height:100vh; min-height:100svh; margin:0; overflow-x:hidden;
+      background:var(--bg-primary); color:var(--text-primary);
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+      font-size:14px; font-weight:400; line-height:1.5; letter-spacing:-.012em;
+      user-select:text; transition:background-color var(--motion), color var(--motion);
+    }
+    button, input, textarea { font:inherit; }
+    button { -webkit-tap-highlight-color:transparent; cursor:pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline:2px solid var(--accent)!important; outline-offset:3px!important; }
+    input, textarea { user-select:text; }
+    input::placeholder { color:var(--text-muted)!important; opacity:.85; }
+    ::selection { background:var(--accent-soft); color:var(--text-primary); }
+    .font-mono, [class*="font-mono"] { font-family:inherit!important; letter-spacing:inherit!important; }
+    .ambient-canvas, .observatory-grid { display:none!important; }
+
+    header, section, footer { max-width:1120px!important; }
+    .glass-panel { background:var(--surface)!important; border:1px solid var(--border-soft)!important; border-radius:var(--radius-card)!important; box-shadow:none!important; backdrop-filter:none!important; -webkit-backdrop-filter:none!important; }
+    .glass-pill { background:var(--surface)!important; border:1px solid var(--border-soft)!important; box-shadow:none!important; backdrop-filter:none!important; -webkit-backdrop-filter:none!important; }
+    .accent-text { color:var(--accent)!important; }
+    .accent-bg { background-color:var(--accent)!important; }
+    .accent-border { border-color:var(--accent)!important; }
+    .accent-shadow { box-shadow:none!important; }
+
+    /* Header: a quiet wordmark, segmented mode selector, and secondary utilities. */
+    body > header { width:100%; padding:24px 28px 18px!important; gap:18px!important; }
+    body > header > div:first-child { gap:9px!important; }
+    body > header > div:first-child span:nth-of-type(1) { color:var(--text-primary)!important; font-family:inherit!important; font-size:14px!important; font-weight:650!important; letter-spacing:-.035em!important; text-transform:lowercase!important; }
+    .brand-owner {
+      color:var(--text-muted);
+      font-family:inherit;
+      font-size:10px;
+      font-weight:450;
+      letter-spacing:-.005em;
+      white-space:nowrap;
+    }
+    #status-dot { width:7px!important; height:7px!important; background:var(--text-muted)!important; box-shadow:none!important; }
+    #status-dot.animate-subtle-pulse { background:var(--accent)!important; animation:none!important; }
+    #status-label { color:var(--text-muted)!important; font-family:inherit!important; font-size:11px!important; letter-spacing:0!important; text-transform:none!important; }
+    nav[role="tablist"] { padding:3px!important; gap:2px!important; border-radius:11px!important; background:#181a1d!important; border:1px solid var(--border-soft)!important; }
+    nav[role="tablist"] .mode-btn { min-height:34px; padding:7px 13px!important; border:0!important; border-radius:8px!important; color:var(--text-secondary)!important; background:transparent!important; box-shadow:none!important; font-family:inherit!important; font-size:12px!important; font-weight:550!important; letter-spacing:0!important; }
+    nav[role="tablist"] .mode-btn[class*="bg-white/10"] { background:#303238!important; color:var(--text-primary)!important; }
+    nav[role="tablist"] .mode-btn:hover { color:var(--text-primary)!important; background:var(--surface-hover)!important; }
+    body > header > div:last-child { gap:7px!important; }
+    body > header > div:last-child > button, #theme-btn { min-height:34px; padding:7px 10px!important; border-radius:9px!important; color:var(--text-secondary)!important; font-family:inherit!important; font-size:11px!important; letter-spacing:0!important; }
+    body > header > div:last-child > button:hover, #theme-btn:hover { background:var(--surface-hover)!important; color:var(--text-primary)!important; }
+    #records-count-badge { border-radius:6px!important; font-size:10px!important; padding:1px 6px!important; background:#303238!important; color:var(--text-secondary)!important; }
+    #theme-menu { background:var(--surface-raised)!important; border:1px solid var(--border)!important; border-radius:12px!important; box-shadow:0 16px 38px rgba(0,0,0,.42)!important; backdrop-filter:none!important; }
+    #theme-menu button { font-family:inherit!important; font-size:12px!important; border-radius:8px!important; }
+
+    /* Personal summary: remove the dashboard-card feeling. */
+    body > section.relative.z-10 { width:100%; padding:4px 28px 0!important; }
+    body > section.relative.z-10 > .glass-panel { padding:14px 8px!important; background:transparent!important; border:0!important; border-top:1px solid var(--border-soft)!important; border-bottom:1px solid var(--border-soft)!important; border-radius:0!important; gap:10px!important; }
+    body > section.relative.z-10 > .glass-panel > div { min-height:46px; padding:4px 14px; border-color:var(--border-soft)!important; }
+    body > section.relative.z-10 .w-9.h-9 { width:30px!important; height:30px!important; border-radius:9px!important; background:transparent!important; border:0!important; }
+    body > section.relative.z-10 .font-mono.text-\[10px\] { color:var(--text-muted)!important; font-family:inherit!important; font-size:10px!important; font-weight:550!important; letter-spacing:0!important; text-transform:none!important; }
+    #scholar-name-input { color:var(--text-primary)!important; font-size:13px!important; font-weight:600!important; }
+    #hud-streak-count, #hud-last-study, #hud-last-subject { color:var(--text-primary)!important; font-family:inherit!important; font-size:13px!important; font-weight:600!important; }
+    #hud-streak-status { font-family:inherit!important; font-size:10px!important; }
+
+    /* Focus area: one clear focal point, no sci-fi ornamentation. */
+    main { width:100%!important; max-width:800px!important; padding:28px 24px 34px!important; justify-content:center!important; gap:0!important; }
+    #timer-presets { position:relative; z-index:5; margin-bottom:12px!important; gap:6px!important; }
+    #timer-presets .preset-btn, .custom-duration-trigger { min-height:34px; padding:7px 12px!important; border-radius:9px!important; border:1px solid var(--border-soft)!important; background:transparent!important; color:var(--text-secondary)!important; font-family:inherit!important; font-size:12px!important; font-weight:550!important; letter-spacing:0!important; }
+    #timer-presets .preset-btn:hover, .custom-duration-trigger:hover { background:var(--surface-hover)!important; color:var(--text-primary)!important; border-color:var(--border)!important; }
+    #timer-presets .preset-btn.is-selected, .custom-duration-trigger.is-selected { background:var(--accent-soft)!important; color:var(--text-primary)!important; border-color:color-mix(in srgb, var(--accent) 40%, var(--border))!important; }
+    .custom-duration-trigger { display:inline-flex; align-items:center; gap:7px; }
+    .custom-duration-panel { display:none; position:absolute; top:calc(100% + 10px); right:0; z-index:50; width:min(320px, calc(100vw - 32px)); padding:17px; border:1px solid var(--border)!important; border-radius:14px!important; background:#202226!important; box-shadow:0 18px 50px rgba(0,0,0,.48)!important; }
+    .custom-duration-panel.is-open { display:block; animation:panel-in 130ms ease-out; }
+    @keyframes panel-in { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+    .custom-panel-eyebrow { color:var(--text-muted); font-size:11px; font-weight:550; }
+    .custom-duration-value { margin-top:2px; color:var(--text-primary); font-size:25px; line-height:1.25; font-weight:620; letter-spacing:-.045em; font-variant-numeric:tabular-nums; }
+    .custom-panel-close { width:28px; height:28px; display:grid; place-items:center; color:var(--text-muted); border:0; border-radius:8px; background:transparent; }
+    .custom-panel-close:hover { color:var(--text-primary); background:var(--surface-hover); }
+    .custom-duration-slider { display:block; width:100%; margin:20px 0 6px; accent-color:var(--accent); cursor:pointer; }
+    .custom-slider-scale { display:flex; justify-content:space-between; color:var(--text-muted); font-size:10px; }
+    .custom-panel-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:17px; padding-top:13px; border-top:1px solid var(--border-soft); }
+    .custom-panel-actions button { min-height:34px; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:550; }
+    .custom-cancel { color:var(--text-secondary); background:transparent; border:1px solid transparent; }
+    .custom-cancel:hover { color:var(--text-primary); background:var(--surface-hover); }
+    .custom-apply { color:#101114; background:#f2f3f5; border:1px solid #f2f3f5; }
+    .custom-apply:hover { background:#fff; }
+
+    main > div.relative.flex.items-center.justify-center { margin-top:4px!important; margin-bottom:0!important; }
+    main svg[viewBox="0 0 320 320"] { width:clamp(270px, 38vw, 340px)!important; height:auto!important; margin:-6px!important; }
+    main svg circle:first-child { display:none; }
+    main svg circle:nth-child(2) { stroke:var(--ring-track)!important; stroke-width:1.8!important; }
+    .progress-ring-circle { stroke:var(--accent)!important; stroke-width:2.2!important; transition:stroke-dashoffset 280ms ease, stroke 160ms ease!important; }
+    #clock-sub-top { margin-bottom:7px!important; color:var(--text-muted)!important; font-family:inherit!important; font-size:11px!important; font-weight:550!important; letter-spacing:.01em!important; text-transform:none!important; }
+    #time-display { color:var(--text-primary)!important; font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif!important; font-size:clamp(64px, 8vw, 86px)!important; font-weight:250!important; letter-spacing:-.075em!important; line-height:1!important; font-variant-numeric:tabular-nums; cursor:pointer!important; }
+    #clock-sub-bottom { margin-top:10px!important; color:var(--text-muted)!important; font-family:inherit!important; font-size:11px!important; font-weight:500!important; letter-spacing:0!important; text-transform:none!important; }
+    #timer-controls { margin-top:20px!important; gap:9px!important; }
+    #start-pause-btn { min-height:44px; padding:0 22px!important; border-radius:11px!important; background:#f2f3f5!important; color:#151619!important; box-shadow:none!important; font-family:inherit!important; font-size:13px!important; font-weight:650!important; letter-spacing:-.01em!important; text-transform:none!important; }
+    #start-pause-btn:hover { background:#fff!important; transform:translateY(-1px); }
+    #reset-btn, #log-session-btn { min-height:42px; border-radius:11px!important; background:var(--surface)!important; border:1px solid var(--border-soft)!important; color:var(--text-secondary)!important; box-shadow:none!important; font-family:inherit!important; font-size:12px!important; }
+    #reset-btn { width:42px; display:inline-flex; align-items:center; justify-content:center; }
+    #reset-btn:hover, #log-session-btn:hover { background:var(--surface-hover)!important; color:var(--text-primary)!important; }
+
+    /* Subject selection: low-contrast surface, strong editable text. */
+    main > section.w-full.max-w-lg { max-width:520px!important; margin-top:16px!important; }
+    main > section.w-full.max-w-lg > div:first-child { margin-bottom:8px!important; }
+    main > section.w-full.max-w-lg > div:first-child span { color:var(--text-muted)!important; font-family:inherit!important; font-size:11px!important; font-weight:550!important; letter-spacing:0!important; text-transform:none!important; }
+    main > section.w-full.max-w-lg .glass-panel { padding:12px 14px!important; border-radius:11px!important; background:var(--surface)!important; border-color:var(--border-soft)!important; box-shadow:none!important; }
+    #subject-input { min-width:0; color:var(--text-primary)!important; font-family:inherit!important; font-size:15px!important; font-weight:580!important; }
+    #subject-today-badge { border-radius:7px!important; background:var(--surface-raised)!important; border:1px solid var(--border-soft)!important; color:var(--text-secondary)!important; font-family:inherit!important; font-size:11px!important; white-space:nowrap; }
+    #subject-pills-container { margin-top:9px!important; gap:6px!important; }
+    #subject-pills-container button { min-height:30px; padding:5px 10px!important; border-radius:8px!important; background:transparent!important; border:1px solid var(--border-soft)!important; color:var(--text-muted)!important; font-family:inherit!important; font-size:11px!important; }
+    #subject-pills-container button:hover, #subject-pills-container button[class*="bg-white/15"] { background:var(--accent-soft)!important; border-color:color-mix(in srgb, var(--accent) 38%, var(--border))!important; color:var(--text-primary)!important; box-shadow:none!important; }
+
+    /* Daily summary footer: one restrained information line. */
+    body > footer { width:100%; padding:0 28px 22px!important; }
+    body > footer > .glass-pill { min-height:54px; padding:10px 14px!important; border-radius:11px!important; background:transparent!important; border:1px solid var(--border-soft)!important; gap:12px!important; }
+    body > footer .text-white\/50 { color:var(--text-muted)!important; }
+    #total-today-display { color:var(--text-primary)!important; font-weight:650!important; }
+    #subject-breakdown-list button { padding:4px 7px!important; border-radius:6px!important; background:var(--surface)!important; border:1px solid var(--border-soft)!important; font-family:inherit!important; font-size:11px!important; }
+    #subject-breakdown-list button:hover { background:var(--surface-hover)!important; }
+    body > footer kbd { border-radius:5px!important; background:var(--surface-raised)!important; border-color:var(--border)!important; font-family:inherit!important; }
+    body > footer > .glass-pill > div:last-child { font-family:inherit!important; color:var(--text-muted)!important; }
+
+    /* History dialog and completion feedback. */
+    #records-modal { padding:18px!important; background:rgba(0,0,0,.72)!important; backdrop-filter:blur(8px)!important; }
+    #records-modal > .glass-panel { width:min(100%,700px)!important; padding:22px!important; max-height:min(88vh,860px)!important; border-radius:16px!important; background:#1b1d21!important; border:1px solid var(--border)!important; box-shadow:0 22px 70px rgba(0,0,0,.42)!important; }
+    #records-modal h2 { font-size:16px!important; font-weight:650!important; letter-spacing:-.025em!important; }
+    #records-modal p { color:var(--text-muted)!important; }
+    #records-modal .bg-white\/\[0\.03\] { background:var(--surface-raised)!important; border-color:var(--border-soft)!important; border-radius:10px!important; }
+    #saved-records-list > div { border-radius:10px!important; background:rgba(255,255,255,.025)!important; border-color:var(--border-soft)!important; box-shadow:none!important; }
+    #saved-records-list > div:hover { background:rgba(255,255,255,.045)!important; }
+    #records-modal button { font-family:inherit!important; }
+    #completion-banner > div { border-radius:11px!important; background:var(--surface-raised)!important; border-color:color-mix(in srgb, var(--accent) 30%, var(--border))!important; }
+
+    button { transition:background-color var(--motion), color var(--motion), border-color var(--motion), transform var(--motion)!important; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    ::-webkit-scrollbar { width:7px; height:7px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:#3a3d43; border-radius:8px; }
+
+    @media (max-width:900px) {
+      body > header { padding-left:20px!important; padding-right:20px!important; }
+      body > section.relative.z-10 { padding-left:20px!important; padding-right:20px!important; }
+      body > footer { padding-left:20px!important; padding-right:20px!important; }
+      body > section.relative.z-10 > .glass-panel { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+      body > section.relative.z-10 > .glass-panel > div:nth-child(2) { border-right:0!important; }
+    }
+    @media (max-width:640px) {
+      body { min-height:100svh; }
+      body > header { padding:16px 16px 12px!important; display:flex!important; justify-content:space-between!important; gap:11px!important; }
+      body > header > div:first-child { flex:1 1 100%; }
+      nav[role="tablist"] { order:3; flex:1 1 100%; justify-content:center; }
+      body > header > div:last-child { order:2; }
+      body > header > div:last-child > button, #theme-btn { min-width:34px; justify-content:center; }
+      body > section.relative.z-10 { padding:4px 16px 0!important; }
+      body > section.relative.z-10 > .glass-panel { padding:8px 2px!important; gap:5px!important; }
+      body > section.relative.z-10 > .glass-panel > div { padding:7px 8px!important; border-right:0!important; }
+      body > section.relative.z-10 .w-9.h-9 { width:28px!important; height:28px!important; }
+      main { padding:20px 16px 24px!important; }
+      main svg[viewBox="0 0 320 320"] { width:clamp(258px,78vw,320px)!important; }
+      #time-display { font-size:clamp(57px,15vw,70px)!important; }
+      #timer-controls { margin-top:17px!important; }
+      main > section.w-full.max-w-lg { margin-top:12px!important; }
+      body > footer { padding:0 16px 16px!important; }
+      body > footer > .glass-pill { align-items:flex-start!important; }
+      #records-modal { padding:9px!important; }
+      #records-modal > .glass-panel { padding:15px!important; max-height:94vh!important; }
+      .custom-duration-panel { right:-2px; }
+    }
+    @media (max-width:390px) {
+      body > header > div:last-child { gap:4px!important; }
+      body > header > div:last-child > button, #theme-btn { padding:6px 7px!important; }
+      nav[role="tablist"] .mode-btn { padding:7px 9px!important; }
+      #timer-presets .preset-btn, .custom-duration-trigger { padding:6px 9px!important; }
+      body > section.relative.z-10 > .glass-panel { grid-template-columns:1fr 1fr!important; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *, *::before, *::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+    }
+  </style>
+</head>
+<body data-theme="cosmos" class="min-h-screen flex flex-col justify-between relative selection:bg-sky-500/20 selection:text-sky-200">
+
+  <!-- Ambient Background Layers -->
+  <div class="fixed inset-0 ambient-canvas pointer-events-none z-0"></div>
+  <div class="fixed inset-0 observatory-grid pointer-events-none z-0"></div>
+
+  <!-- Top Navigation / Mode & Theme Bar -->
+  <header class="relative z-20 w-full max-w-5xl mx-auto px-6 pt-6 pb-2 flex flex-wrap items-center justify-between gap-4">
+    <!-- Left Brand & Status Indicator -->
+    <div class="flex items-center gap-3">
+      <div class="w-2.5 h-2.5 rounded-full accent-bg accent-shadow transition-all duration-500" id="status-dot"></div>
+      <span class="font-mono text-xs tracking-[0.2em] uppercase text-white/60 font-medium">Aether</span>
+      <span class="brand-owner">by IOMI Roman &amp; Co.</span>
+      <span id="status-label" class="font-mono text-[11px] text-white/40 tracking-wider uppercase">Standby</span>
+    </div>
+
+    <!-- Center Mode Switcher (Timer / Stopwatch / Clock) -->
+    <nav class="glass-pill p-1 rounded-full flex items-center gap-1" role="tablist" aria-label="Clock Modes">
+      <button onclick="switchMode('timer')" id="mode-btn-timer"
+        class="mode-btn px-4 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-200 bg-white/10 text-white shadow-sm flex items-center gap-1.5">
+        <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+        <span>Timer</span>
+      </button>
+      <button onclick="switchMode('stopwatch')" id="mode-btn-stopwatch"
+        class="mode-btn px-4 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-200 text-white/50 hover:text-white/80 flex items-center gap-1.5">
+        <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+        <span>Stopwatch</span>
+      </button>
+      <button onclick="switchMode('clock')" id="mode-btn-clock"
+        class="mode-btn px-4 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-200 text-white/50 hover:text-white/80 flex items-center gap-1.5">
+        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+        <span>Clock</span>
+      </button>
+    </nav>
+
+    <!-- Right Utilities: Records, Sound, Theme, Fullscreen -->
+    <div class="flex items-center gap-2">
+
+      <!-- Records Drawer Button -->
+      <button onclick="toggleRecordsModal(true)" title="Open Saved Study Records"
+        class="glass-pill px-3 py-1.5 rounded-full text-xs font-mono text-white/75 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5">
+        <i data-lucide="database" class="w-3.5 h-3.5 accent-text"></i>
+        <span class="hidden sm:inline">Records</span>
+        <span id="records-count-badge" class="px-1.5 py-0.2 rounded-full bg-white/10 text-[10px] text-white/80">0</span>
+      </button>
+
+      <!-- Sound Toggle -->
+      <button onclick="toggleSound()" id="sound-btn" title="Toggle Completion Chime"
+        class="glass-pill p-2 rounded-full text-white/60 hover:text-white hover:bg-white/5 transition-all">
+        <i data-lucide="volume-2" id="sound-icon" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Theme Selector Dropdown Trigger -->
+      <div class="relative">
+        <button onclick="toggleThemeMenu()" id="theme-btn" title="Appearance"
+          class="glass-pill px-3 py-1.5 rounded-full text-xs font-mono text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full accent-bg"></span>
+          <span id="current-theme-name" class="hidden sm:inline">Dark</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-60"></i>
+        </button>
+        <!-- Dropdown -->
+        <div id="theme-menu" class="hidden absolute right-0 mt-2 w-40 glass-panel rounded-2xl p-1.5 z-50 shadow-2xl">
+          <button onclick="setTheme('cosmos', 'Dark')" class="w-full px-3 py-2 rounded-xl text-left text-xs flex items-center justify-between hover:bg-white/5 text-white/80 transition-colors">
+            <span>Dark</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+          </button>
+          <button onclick="setTheme('slate', 'Forest')" class="w-full px-3 py-2 rounded-xl text-left text-xs flex items-center justify-between hover:bg-white/5 text-white/80 transition-colors">
+            <span>Forest</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          </button>
+          <button onclick="setTheme('warm', 'Warm')" class="w-full px-3 py-2 rounded-xl text-left text-xs flex items-center justify-between hover:bg-white/5 text-white/80 transition-colors">
+            <span>Warm</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+          </button>
+          <button onclick="setTheme('minimal', 'Monochrome')" class="w-full px-3 py-2 rounded-xl text-left text-xs flex items-center justify-between hover:bg-white/5 text-white/80 transition-colors">
+            <span>Monochrome</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-zinc-200"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fullscreen Toggle -->
+      <button onclick="toggleFullscreen()" title="Enter fullscreen (F)"
+        class="glass-pill p-2 rounded-full text-white/60 hover:text-white hover:bg-white/5 transition-all">
+        <i data-lucide="maximize-2" id="fullscreen-icon" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- SCHOLAR PROFILE & STUDY RECORDS HUD (Name, Last subject, Streak, Last study) -->
+  <!-- ===================================================================== -->
+  <section class="relative z-10 w-full max-w-5xl mx-auto px-6 pt-3">
+    <div class="glass-panel rounded-2xl p-3.5 sm:px-5 sm:py-3.5 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-center">
+      
+      <!-- 1. Your name (Editable Inline) -->
+      <div class="flex items-center gap-3 min-w-0 pr-2 border-r border-white/5">
+        <div class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0">
+          <i data-lucide="user-check" class="w-4 h-4 accent-text"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5">
+            <span class="font-mono text-[10px] uppercase tracking-widest text-white/40">Your name</span>
+            <i data-lucide="pencil" class="w-2.5 h-2.5 text-white/25"></i>
+          </div>
+          <input
+            id="scholar-name-input"
+            type="text"
+            value="Scholar"
+            placeholder="Enter your name..."
+            aria-label="Your name"
+            oninput="handleNameInput(this.value)"
+            onkeydown="if(event.key==='Enter') this.blur()"
+            class="w-full bg-transparent text-sm font-medium text-white focus:outline-none focus:border-b focus:border-white/30 truncate"
+          />
+        </div>
+      </div>
+
+      <!-- 2. Personal study streak -->
+      <div class="flex items-center gap-3 min-w-0 lg:border-r border-white/5 pr-2">
+        <div class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0">
+          <i data-lucide="flame" class="w-4 h-4 accent-text"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <span class="font-mono text-[10px] uppercase tracking-widest text-white/40 block">Study streak</span>
+          <div class="flex items-baseline gap-1.5">
+            <span id="hud-streak-count" class="font-mono text-sm sm:text-base font-semibold text-white">0 Days</span>
+            <span id="hud-streak-status" class="font-mono text-[10px] text-white/40 truncate">Start today</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Last subject Studied -->
+      <div class="flex items-center gap-3 min-w-0 pr-2 border-r border-white/5">
+        <div class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0">
+          <i data-lucide="bookmark-check" class="w-4 h-4 accent-text"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <span class="font-mono text-[10px] uppercase tracking-widest text-white/40 block">Last subject</span>
+          <div id="hud-last-subject" class="text-sm font-medium text-white truncate" title="No subject recorded yet">
+            —
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Most recent study session -->
+      <div class="flex items-center justify-between gap-2 min-w-0">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0">
+            <i data-lucide="history" class="w-4 h-4 text-sky-300"></i>
+          </div>
+          <div class="min-w-0">
+            <span class="font-mono text-[10px] uppercase tracking-widest text-white/40 block">Last study</span>
+            <div id="hud-last-study" class="font-mono text-xs text-white/85 truncate" title="Last recorded study session">
+              No record yet
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Main Centerpiece: Clock/Timer + Subject Input Directly Below -->
+  <main class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-4 max-w-3xl mx-auto w-full">
+
+    <!-- Duration Presets Bar (Only visible in Timer Mode) -->
+    <div id="timer-presets" class="mb-5 flex flex-wrap items-center justify-center gap-1.5 transition-all duration-300">
+      <button onclick="setTimerMinutes(25)" data-mins="25" aria-pressed="true" class="preset-btn is-selected px-3 py-1 rounded-full text-xs font-mono border border-white/10 bg-white/10 text-white transition-all">25m</button>
+      <button onclick="setTimerMinutes(45)" data-mins="45" aria-pressed="false" class="preset-btn px-3 py-1 rounded-full text-xs font-mono border border-white/5 bg-white/[0.02] text-white/50 hover:text-white/80 hover:border-white/15 transition-all">45m</button>
+      <button onclick="setTimerMinutes(60)" data-mins="60" aria-pressed="false" class="preset-btn px-3 py-1 rounded-full text-xs font-mono border border-white/5 bg-white/[0.02] text-white/50 hover:text-white/80 hover:border-white/15 transition-all">60m</button>
+      <button onclick="setTimerMinutes(90)" data-mins="90" aria-pressed="false" class="preset-btn px-3 py-1 rounded-full text-xs font-mono border border-white/5 bg-white/[0.02] text-white/50 hover:text-white/80 hover:border-white/15 transition-all">90m</button>
+      
+      <!-- Custom duration popover -->
+      <div id="custom-duration-wrap" class="relative">
+        <button id="custom-duration-trigger" type="button" onclick="toggleCustomDurationPanel()"
+          aria-expanded="false" aria-controls="custom-duration-panel" aria-pressed="false"
+          class="custom-duration-trigger">
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+          <span>Custom</span>
+        </button>
+        <div id="custom-duration-panel" class="custom-duration-panel" role="group" aria-label="Choose a custom focus duration">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="custom-panel-eyebrow">Focus duration</div>
+              <div id="custom-duration-value" class="custom-duration-value">45 min</div>
+            </div>
+            <button type="button" class="custom-panel-close" onclick="toggleCustomDurationPanel(false)" aria-label="Close custom duration">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <input id="custom-duration-slider" class="custom-duration-slider" type="range" min="5" max="480" step="5" value="45"
+            oninput="updateCustomDurationPreview(this.value)" aria-label="Custom focus duration in minutes" />
+          <div class="custom-slider-scale"><span>5 min</span><span>8 hr</span></div>
+          <div class="custom-panel-actions">
+            <button type="button" class="custom-cancel" onclick="toggleCustomDurationPanel(false)">Cancel</button>
+            <button type="button" class="custom-apply" onclick="applyCustomDuration()">Set duration</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary Clock / Timer Ring & Readout -->
+    <div class="relative flex items-center justify-center my-1">
+      <!-- Precision SVG Circular Progress Ring -->
+      <svg class="w-72 h-72 sm:w-84 sm:h-84 md:w-92 md:h-92 -m-4" viewBox="0 0 320 320">
+        <!-- Outer subtle tick marks ring -->
+        <circle cx="160" cy="160" r="148" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" stroke-dasharray="2 6" />
+        <!-- Background Track -->
+        <circle cx="160" cy="160" r="138" fill="none" stroke="var(--ring-track)" stroke-width="2.5" />
+        <!-- Animated Progress Arc -->
+        <circle id="progress-ring" class="progress-ring-circle" cx="160" cy="160" r="138" fill="none"
+          stroke="var(--accent)" stroke-width="3" stroke-linecap="round"
+          stroke-dasharray="867.08" stroke-dashoffset="0" />
+      </svg>
+
+      <!-- Digital Time Display Inside Ring -->
+      <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+        <!-- Subtle Top Readout (e.g., AM/PM or Session Target) -->
+        <div id="clock-sub-top" class="font-mono text-[11px] uppercase tracking-[0.25em] text-white/35 mb-1">
+          25:00 SESSION
+        </div>
+
+        <!-- Main Tabular Numerals -->
+        <div id="time-display" onclick="handleDisplayClick()"
+          title="Click or press Space to Start/Pause"
+          class="font-mono tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] font-light tracking-tight text-white cursor-pointer select-none transition-transform active:scale-[0.99]">
+          25:00
+        </div>
+
+        <!-- Subtle Bottom Readout (Milliseconds or Seconds / Date) -->
+        <div id="clock-sub-bottom" class="font-mono text-xs text-white/40 mt-1.5 tracking-widest h-4">
+          READY TO FOCUS
+        </div>
+
+        <!-- Play / Pause / Reset / Save Controls -->
+        <div id="timer-controls" class="mt-5 flex items-center gap-2.5">
+          <button onclick="toggleStartPause()" id="start-pause-btn"
+            class="px-6 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition-all duration-200 flex items-center gap-2 bg-white text-slate-950 hover:bg-white/90 active:scale-95 shadow-lg">
+            <i data-lucide="play" id="play-icon" class="w-3.5 h-3.5 fill-current"></i>
+            <span id="start-pause-text">Start</span>
+          </button>
+          <button onclick="resetCurrentMode()" id="reset-btn" title="Reset (R)"
+            class="p-2 rounded-full glass-pill text-white/50 hover:text-white hover:bg-white/10 transition-all active:scale-95">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          </button>
+          <button onclick="manualSaveCurrentRecord()" id="log-session-btn" title="Save session to your Scholar Records"
+            class="px-3.5 py-2 rounded-full glass-pill text-xs font-mono text-white/75 hover:text-white hover:bg-white/10 transition-all active:scale-95 flex items-center gap-1.5">
+            <i data-lucide="bookmark-plus" class="w-3.5 h-3.5 accent-text"></i>
+            <span>Save Record</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- CORE USER REQUEST: SUBJECT INPUT & QUICK SELECTOR DIRECTLY BELOW CLOCK -->
+    <!-- ===================================================================== -->
+    <section class="w-full max-w-lg mt-6 flex flex-col items-center">
+      <!-- Label -->
+      <div class="flex items-center gap-2 mb-2">
+        <span class="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">Study subject</span>
+      </div>
+
+      <!-- Interactive Subject Input Box -->
+      <div class="relative w-full group">
+        <div class="glass-panel rounded-2xl px-5 py-3.5 flex items-center justify-between gap-3 transition-all duration-300 focus-within:border-white/25 hover:border-white/15">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <i data-lucide="book-open" class="w-4 h-4 accent-text shrink-0 opacity-80"></i>
+            <input
+              id="subject-input"
+              type="text"
+              value="Astrophysics"
+              placeholder="Write the subject you are doing..."
+              aria-label="Current Study Subject"
+              oninput="handleSubjectInput(this.value)"
+              onkeydown="if(event.key === 'Enter') { this.blur(); }"
+              class="w-full bg-transparent text-base sm:text-lg font-medium text-white placeholder-white/25 focus:outline-none truncate"
+            />
+          </div>
+
+          <!-- Active Session Timer Badge for Current Subject -->
+          <div class="flex items-center gap-2 shrink-0">
+            <span id="subject-today-badge" class="font-mono text-xs px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/60" title="Total time studied on this subject today">
+              0m today
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick-Select Subject Pills -->
+      <div class="mt-3 flex flex-wrap items-center justify-center gap-1.5" id="subject-pills-container">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Notification Toast for Saved Record / Completed Timer -->
+  <div id="completion-banner" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden">
+    <div class="glass-panel px-5 py-3 rounded-2xl border border-sky-400/30 flex items-center gap-3 shadow-2xl">
+      <div class="w-2.5 h-2.5 rounded-full accent-bg animate-ping"></div>
+      <div class="text-xs">
+        <span class="font-semibold text-white" id="banner-title">Session Complete!</span>
+        <span class="text-white/60 ml-1" id="banner-subtitle">Logged to your daily focus record.</span>
+      </div>
+      <button onclick="hideCompletionBanner()" class="text-white/40 hover:text-white ml-2">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SAVED STUDY RECORDS ARCHIVE MODAL / DRAWER                            -->
+  <!-- ===================================================================== -->
+  <div id="records-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 border border-white/10 shadow-2xl flex flex-col max-h-[85vh]">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-white/10">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="award" class="w-5 h-5 accent-text"></i>
+          <div>
+            <h2 class="text-base font-semibold text-white tracking-tight">Scholar Study Records</h2>
+            <p class="text-xs text-white/45 font-mono" id="modal-scholar-summary">Persistent local study log</p>
+          </div>
+        </div>
+        <button onclick="toggleRecordsModal(false)" class="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Summary Cards inside Modal -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-4">
+        <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-3">
+          <span class="font-mono text-[10px] uppercase text-white/40 block">Scholar</span>
+          <span id="modal-stat-name" class="text-sm font-medium text-white truncate block mt-0.5">Scholar</span>
+        </div>
+        <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-3">
+          <span class="font-mono text-[10px] uppercase text-white/40 block">Current Streak</span>
+          <span id="modal-stat-streak" class="font-mono text-sm font-semibold text-amber-400 block mt-0.5">0 Days</span>
+        </div>
+        <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-3">
+          <span class="font-mono text-[10px] uppercase text-white/40 block">Last subject</span>
+          <span id="modal-stat-subject" class="text-sm font-medium text-white truncate block mt-0.5">—</span>
+        </div>
+        <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-3">
+          <span class="font-mono text-[10px] uppercase text-white/40 block">Last study</span>
+          <span id="modal-stat-last" class="font-mono text-xs text-white/80 truncate block mt-0.5">—</span>
+        </div>
+      </div>
+
+      <!-- Saved Records List -->
+      <div class="flex-1 overflow-y-auto pr-1 space-y-2" id="saved-records-list">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="pt-4 mt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="manualSaveCurrentRecord()"
+            class="px-3.5 py-2 rounded-xl bg-white text-slate-950 hover:bg-white/90 text-xs font-medium flex items-center gap-1.5 transition-all">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            <span>Log Current Session Now</span>
+          </button>
+          <button onclick="copyRecordsSummary()"
+            class="px-3 py-2 rounded-xl glass-pill text-xs font-mono text-white/70 hover:text-white flex items-center gap-1.5 transition-all">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="copy-records-btn-text">Copy Summary</span>
+          </button>
+        </div>
+
+        <button onclick="clearAllSavedRecords()"
+          class="text-xs font-mono text-rose-400/70 hover:text-rose-300 transition-colors">
+          Clear Archive
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Minimalist Footer: Today's Focused Time & Session Breakdown -->
+  <footer class="relative z-20 w-full max-w-5xl mx-auto px-6 pb-6 pt-2">
+    <div class="glass-pill rounded-2xl px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+      
+      <!-- Left: Today's Total & Breakdown -->
+      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-2 text-xs">
+        <div class="flex items-center gap-2">
+          <i data-lucide="flame" class="w-3.5 h-3.5 accent-text"></i>
+          <span class="text-white/50">Today's Focus:</span>
+          <span id="total-today-display" class="font-mono font-medium text-white">0m</span>
+        </div>
+
+        <div class="h-3 w-[1px] bg-white/10 hidden sm:block"></div>
+
+        <!-- Per-subject mini chips -->
+        <div id="subject-breakdown-list" class="flex flex-wrap items-center gap-2">
+          <span class="text-white/30 font-mono text-[11px]">No sessions logged yet today</span>
+        </div>
+      </div>
+
+      <!-- Right: Keyboard Shortcuts Hint & Clear Log -->
+      <div class="flex items-center gap-4 text-[11px] font-mono text-white/35 shrink-0">
+        <div class="hidden md:flex items-center gap-3">
+          <span><kbd class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/60">Space</kbd> Start/Pause</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/60">R</kbd> Reset</span>
+        </div>
+        <button onclick="resetTodayStats()" title="Reset today's study log"
+          class="text-white/30 hover:text-white/70 transition-colors underline decoration-white/15 underline-offset-4">
+          Clear Today
+        </button>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    /***************************************************************************
+     * STATE & CONFIGURATION
+     ***************************************************************************/
+    const DEFAULT_SUBJECTS = [
+      "Astrophysics",
+      "Electric Circuits",
+      "Orbital Mechanics",
+      "Mathematics",
+      "Computer Science"
+    ];
+
+
+    const RING_CIRCUMFERENCE = 2 * Math.PI * 138; // r = 138 -> ~867.08
+
+    let state = {
+      mode: 'timer',            // 'timer' | 'stopwatch' | 'clock'
+      isRunning: false,
+      soundEnabled: true,
+      theme: 'cosmos',
+      themeName: 'Dark',
+
+      // Timer state
+      timerDurationSec: 25 * 60,
+      timerRemainingSec: 25 * 60,
+
+      // Stopwatch state
+      stopwatchElapsedSec: 0,
+
+      // Current Session Unsaved Elapsed Tracker (seconds spent in current session)
+      currentSessionFocusedSec: 0,
+
+      // Current Subject
+      currentSubject: 'Astrophysics',
+      customSubjects: [...DEFAULT_SUBJECTS],
+
+      // Scholar Profile & Persistent Records
+      scholarName: 'Scholar',
+      streakCount: 0,
+      lastStudyDateKey: null,     // YYYY-MM-DD of last study day for streak calculation
+      lastSubject: null,          // Last saved subject
+      lastStudyTimestamp: null,   // ISO timestamp of last study session
+      lastStudyDurationSec: 0,    // Duration of last saved study session
+      savedRecords: [],           // Array of { id, name, subject, durationSec, streak, timestamp }
+
+      // Study Time Tracking (in seconds per subject for today)
+      todayKey: getLocalDateKey(new Date()),
+      subjectSecondsToday: {}
+    };
+
+    let intervalId = null;
+    let clockIntervalId = null;
+    let lastTickTimestamp = null;
+
+    function getLocalDateKey(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getYesterdayDateKey() {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return getLocalDateKey(d);
+    }
+
+    /***************************************************************************
+     * INITIALIZATION & LOCAL STORAGE
+     ***************************************************************************/
+    function initApp() {
+      loadFromStorage();
+      verifyStreakIntegrity();
+      lucide.createIcons();
+      renderSubjectPills();
+      updateSubjectInputUI();
+      updateScholarHUD();
+      updateStatsFooter();
+      updateDisplay();
+
+      // Start background real-time clock updater
+      clockIntervalId = setInterval(() => {
+        if (state.mode === 'clock') {
+          updateDisplay();
+        }
+      }, 250);
+
+      // Global Keyboard Shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (document.activeElement.tagName === 'INPUT') return;
+
+        if (e.code === 'Space') {
+          e.preventDefault();
+          toggleStartPause();
+        } else if (e.key === 'r' || e.key === 'R') {
+          e.preventDefault();
+          if (state.mode !== 'clock') resetCurrentMode();
+        } else if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          toggleFullscreen();
+        } else if (e.key === 'Escape') {
+          toggleRecordsModal(false);
+          toggleCustomDurationPanel(false);
+        }
+      });
+
+      // Close theme dropdown when clicking outside
+      window.addEventListener('click', (e) => {
+        const menu = document.getElementById('theme-menu');
+        const btn = document.getElementById('theme-btn');
+        if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+          menu.classList.add('hidden');
+        }
+        const customPanel = document.getElementById('custom-duration-panel');
+        const customTrigger = document.getElementById('custom-duration-trigger');
+        if (customPanel && customTrigger && !customPanel.contains(e.target) && !customTrigger.contains(e.target)) {
+          toggleCustomDurationPanel(false);
+        }
+      });
+    }
+
+    function loadFromStorage() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aether_study_state_v2')) ||
+                      JSON.parse(localStorage.getItem('aether_study_state_v1'));
+        const today = getLocalDateKey(new Date());
+        if (saved) {
+          state.scholarName = saved.scholarName || 'Scholar';
+          state.currentSubject = saved.currentSubject || 'Astrophysics';
+          state.soundEnabled = saved.soundEnabled !== undefined ? saved.soundEnabled : true;
+          state.theme = saved.theme || 'cosmos';
+          state.themeName = ({ cosmos: 'Dark', slate: 'Forest', warm: 'Warm', minimal: 'Monochrome' })[state.theme] || 'Dark';
+
+          state.streakCount = saved.streakCount || 0;
+          state.lastStudyDateKey = saved.lastStudyDateKey || null;
+          state.lastSubject = saved.lastSubject || null;
+          state.lastStudyTimestamp = saved.lastStudyTimestamp || null;
+          state.lastStudyDurationSec = saved.lastStudyDurationSec || 0;
+          state.savedRecords = Array.isArray(saved.savedRecords) ? saved.savedRecords : [];
+
+
+          if (saved.customSubjects && Array.isArray(saved.customSubjects)) {
+            state.customSubjects = saved.customSubjects;
+          }
+          if (saved.todayKey === today && saved.subjectSecondsToday) {
+            state.subjectSecondsToday = saved.subjectSecondsToday;
+          }
+        }
+        setTheme(state.theme, state.themeName || 'Dark', false);
+        updateSoundIcon();
+      } catch (err) {
+        console.warn('Could not load state from localStorage:', err);
+      }
+    }
+
+    function saveToStorage() {
+      try {
+        const payload = {
+          scholarName: state.scholarName,
+          currentSubject: state.currentSubject,
+          soundEnabled: state.soundEnabled,
+          theme: state.theme,
+          themeName: state.themeName,
+          customSubjects: state.customSubjects,
+          streakCount: state.streakCount,
+          lastStudyDateKey: state.lastStudyDateKey,
+          lastSubject: state.lastSubject,
+          lastStudyTimestamp: state.lastStudyTimestamp,
+          lastStudyDurationSec: state.lastStudyDurationSec,
+          savedRecords: state.savedRecords,
+          todayKey: state.todayKey,
+          subjectSecondsToday: state.subjectSecondsToday
+        };
+        localStorage.setItem('aether_study_state_v2', JSON.stringify(payload));
+      } catch (err) {
+        console.warn('Could not save state:', err);
+      }
+    }
+
+    /***************************************************************************
+     * SCHOLAR PROFILE, STREAK & RECORDS SYSTEM
+     ***************************************************************************/
+    function verifyStreakIntegrity() {
+      const today = getLocalDateKey(new Date());
+      const yesterday = getYesterdayDateKey();
+      // If the user missed both yesterday and today, reset active streak to 0
+      if (state.lastStudyDateKey && state.lastStudyDateKey !== today && state.lastStudyDateKey !== yesterday) {
+        state.streakCount = 0;
+        saveToStorage();
+      }
+    }
+
+    function registerStudyStreakForToday() {
+      const today = getLocalDateKey(new Date());
+      const yesterday = getYesterdayDateKey();
+
+      if (state.lastStudyDateKey === today) {
+        // Already counted streak for today
+        if (state.streakCount === 0) state.streakCount = 1;
+      } else if (state.lastStudyDateKey === yesterday) {
+        state.streakCount += 1;
+        state.lastStudyDateKey = today;
+      } else {
+        state.streakCount = 1;
+        state.lastStudyDateKey = today;
+      }
+    }
+
+    function handleNameInput(val) {
+      state.scholarName = val.trim() || 'Scholar';
+      updateScholarHUD(false);
+      saveToStorage();
+    }
+
+    function recordStudySession(durationSec, sourceLabel = 'Session') {
+      const cleanDuration = Math.max(1, Math.round(durationSec));
+      const nowIso = new Date().toISOString();
+      const subj = state.currentSubject.trim() || 'General Study';
+      const scholar = state.scholarName.trim() || 'Scholar';
+
+      registerStudyStreakForToday();
+
+      state.lastSubject = subj;
+      state.lastStudyTimestamp = nowIso;
+      state.lastStudyDurationSec = cleanDuration;
+
+      const newRecord = {
+        id: 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name: scholar,
+        subject: subj,
+        durationSec: cleanDuration,
+        streak: state.streakCount,
+        timestamp: nowIso,
+        mode: sourceLabel
+      };
+
+      state.savedRecords.unshift(newRecord);
+      if (state.savedRecords.length > 100) {
+        state.savedRecords.pop();
+      }
+
+      state.currentSessionFocusedSec = 0;
+      saveToStorage();
+      updateScholarHUD();
+      renderSavedRecordsList();
+    }
+
+    function manualSaveCurrentRecord() {
+      playChime('click');
+      const durationToLog = Math.round(state.currentSessionFocusedSec || 0);
+      const subj = state.currentSubject.trim() || 'General Study';
+
+      // Never create a record from a fallback estimate or a fabricated minimum duration.
+      if (durationToLog < 5) {
+        showNotificationBanner(
+          'No Study Time to Save',
+          'Start a focus session and study for at least five seconds first.'
+        );
+        return;
+      }
+
+      recordStudySession(durationToLog, state.mode.toUpperCase());
+      showNotificationBanner(
+        `Record Saved for ${state.scholarName}`,
+        `${subj} • ${formatDurationShort(durationToLog)} • Streak: ${state.streakCount}d`
+      );
+    }
+
+    function formatRelativeStudyTime(isoString, durationSec) {
+      if (!isoString) return 'No record yet';
+      const date = new Date(isoString);
+      const todayKey = getLocalDateKey(new Date());
+      const yesterdayKey = getYesterdayDateKey();
+      const recordKey = getLocalDateKey(date);
+
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      let dayPrefix = '';
+      if (recordKey === todayKey) {
+        dayPrefix = 'Today';
+      } else if (recordKey === yesterdayKey) {
+        dayPrefix = 'Yesterday';
+      } else {
+        dayPrefix = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      }
+
+      const durStr = durationSec ? ` • ${formatDurationShort(durationSec)}` : '';
+      return `${dayPrefix}, ${timeStr}${durStr}`;
+    }
+
+    function updateScholarHUD(updateInputVal = true) {
+      const nameInput = document.getElementById('scholar-name-input');
+      if (updateInputVal && nameInput && document.activeElement !== nameInput) {
+        nameInput.value = state.scholarName;
+      }
+
+      const streakCountEl = document.getElementById('hud-streak-count');
+      const streakStatusEl = document.getElementById('hud-streak-status');
+      const lastSubjEl = document.getElementById('hud-last-subject');
+      const lastStudyEl = document.getElementById('hud-last-study');
+      const badgeEl = document.getElementById('records-count-badge');
+
+      const daysWord = state.streakCount === 1 ? 'Day' : 'Days';
+      streakCountEl.textContent = `${state.streakCount} ${daysWord}`;
+
+      const today = getLocalDateKey(new Date());
+      if (state.lastStudyDateKey === today) {
+        streakStatusEl.textContent = 'Active today';
+        streakStatusEl.className = 'font-mono text-[10px] text-emerald-400 truncate';
+      } else if (state.streakCount > 0) {
+        streakStatusEl.textContent = 'Study to keep';
+        streakStatusEl.className = 'font-mono text-[10px] text-amber-300/80 truncate';
+      } else {
+        streakStatusEl.textContent = 'Start today';
+        streakStatusEl.className = 'font-mono text-[10px] text-white/40 truncate';
+      }
+
+      lastSubjEl.textContent = state.lastSubject || '—';
+      lastSubjEl.title = state.lastSubject ? `Last studied: ${state.lastSubject}` : 'No subject recorded yet';
+
+      const formattedLast = formatRelativeStudyTime(state.lastStudyTimestamp, state.lastStudyDurationSec);
+      lastStudyEl.textContent = formattedLast;
+      lastStudyEl.title = formattedLast;
+
+      if (badgeEl) {
+        badgeEl.textContent = state.savedRecords.length;
+      }
+
+      // Also sync modal summary stats
+      const mName = document.getElementById('modal-stat-name');
+      const mStreak = document.getElementById('modal-stat-streak');
+      const mSubj = document.getElementById('modal-stat-subject');
+      const mLast = document.getElementById('modal-stat-last');
+      if (mName) mName.textContent = state.scholarName;
+      if (mStreak) mStreak.textContent = `${state.streakCount} ${daysWord}`;
+      if (mSubj) mSubj.textContent = state.lastSubject || '—';
+      if (mLast) mLast.textContent = formattedLast;
+
+    }
+
+    /***************************************************************************
+     * STUDY RECORDS ARCHIVE
+     ***************************************************************************/
+    function toggleRecordsModal(show) {
+      const modal = document.getElementById('records-modal');
+      if (show) {
+        updateScholarHUD();
+        renderSavedRecordsList();
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function renderSavedRecordsList() {
+      const container = document.getElementById('saved-records-list');
+      if (!container) return;
+
+      if (state.savedRecords.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 px-4 border border-dashed border-white/10 rounded-2xl">
+            <p class="text-sm text-white/60 font-medium">No saved study records yet</p>
+            <p class="text-xs text-white/35 mt-1">Complete a timer session or click "Save Record" to log your progress.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.savedRecords.map(rec => {
+        const timeFormatted = formatRelativeStudyTime(rec.timestamp, 0);
+        const durFormatted = formatDurationShort(rec.durationSec);
+        return `
+          <div class="bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.07] rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 transition-colors">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-white/[0.05] flex items-center justify-center font-mono text-xs accent-text font-semibold shrink-0">
+                ${durFormatted}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-white truncate">${escapeHtml(rec.subject)}</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/50">${escapeHtml(rec.name)}</span>
+                </div>
+                <div class="font-mono text-[11px] text-white/40 mt-0.5 flex items-center gap-2">
+                  <span>${timeFormatted}</span>
+                  <span>•</span>
+                  <span class="text-amber-400/90">Streak: ${rec.streak || 1}d</span>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="deleteSavedRecord('${rec.id}')" title="Delete record"
+              class="p-1.5 rounded-lg text-white/30 hover:text-rose-400 hover:bg-white/5 transition-colors">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function deleteSavedRecord(id) {
+      state.savedRecords = state.savedRecords.filter(r => r.id !== id);
+      if (state.savedRecords.length > 0) {
+        const latest = state.savedRecords[0];
+        state.lastSubject = latest.subject;
+        state.lastStudyTimestamp = latest.timestamp;
+        state.lastStudyDurationSec = latest.durationSec;
+      }
+      saveToStorage();
+      updateScholarHUD();
+      renderSavedRecordsList();
+    }
+
+    function clearAllSavedRecords() {
+      state.savedRecords = [];
+      state.lastSubject = null;
+      state.lastStudyTimestamp = null;
+      state.lastStudyDurationSec = 0;
+      saveToStorage();
+      updateScholarHUD();
+      renderSavedRecordsList();
+    }
+
+    function copyRecordsSummary() {
+      const summaryLines = [
+        `Aether Study Record — ${state.scholarName}`,
+        `Current Streak: ${state.streakCount} Days`,
+        `Last subject: ${state.lastSubject || 'N/A'}`,
+        `Last study: ${formatRelativeStudyTime(state.lastStudyTimestamp, state.lastStudyDurationSec)}`,
+        `--- Recent Sessions ---`,
+        ...state.savedRecords.slice(0, 10).map(r =>
+          `• ${r.subject} (${formatDurationShort(r.durationSec)}) — ${formatRelativeStudyTime(r.timestamp, 0)} [Streak: ${r.streak}d]`
+        )
+      ];
+      const textArea = document.createElement('textarea');
+      textArea.value = summaryLines.join('\n');
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        const btnText = document.getElementById('copy-records-btn-text');
+        if (btnText) {
+          btnText.textContent = 'Copied!';
+          setTimeout(() => { btnText.textContent = 'Copy Summary'; }, 2000);
+        }
+      } catch (e) {}
+      document.body.removeChild(textArea);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, s => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[s]));
+    }
+
+    /***************************************************************************
+     * WEB AUDIO API SYNTHESIZED CHIME (Zero External Dependencies)
+     ***************************************************************************/
+    function playChime(type = 'complete') {
+      if (!state.soundEnabled) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+
+        if (type === 'complete') {
+          // Harmonic observatory bell chord (C5, G5, B5, E6)
+          const freqs = [523.25, 783.99, 987.77, 1318.51];
+          freqs.forEach((f, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, now + idx * 0.11);
+
+            gain.gain.setValueAtTime(0.0001, now + idx * 0.11);
+            gain.gain.exponentialRampToValueAtTime(0.12 / (idx + 1), now + idx * 0.11 + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.11 + 2.4);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.11);
+            osc.stop(now + idx * 0.11 + 2.5);
+          });
+        } else if (type === 'click') {
+          // Subtle tactile tick
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.035);
+
+          gain.gain.setValueAtTime(0.06, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        }
+      } catch (e) {
+        // Ignore audio errors if blocked by browser autoplay policy
+      }
+    }
+
+    /***************************************************************************
+     * MODE SWITCHING & TIMER ENGINE
+     ***************************************************************************/
+    function switchMode(newMode) {
+      if (state.mode === newMode) return;
+      pauseEngine();
+      state.mode = newMode;
+
+      // Update Mode Pill UI
+      ['timer', 'stopwatch', 'clock'].forEach(m => {
+        const btn = document.getElementById(`mode-btn-${m}`);
+        if (m === newMode) {
+          btn.className = "mode-btn px-4 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-200 bg-white/10 text-white shadow-sm flex items-center gap-1.5";
+        } else {
+          btn.className = "mode-btn px-4 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-200 text-white/50 hover:text-white/80 flex items-center gap-1.5";
+        }
+      });
+
+      // Toggle visibility of presets & controls
+      const presetsEl = document.getElementById('timer-presets');
+      const controlsEl = document.getElementById('timer-controls');
+
+      if (newMode === 'timer') {
+        presetsEl.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mb-0', 'overflow-hidden');
+        presetsEl.classList.add('mb-6');
+        controlsEl.classList.remove('hidden');
+      } else if (newMode === 'stopwatch') {
+        presetsEl.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mb-0', 'overflow-hidden');
+        presetsEl.classList.remove('mb-6');
+        controlsEl.classList.remove('hidden');
+      } else if (newMode === 'clock') {
+        presetsEl.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mb-0', 'overflow-hidden');
+        presetsEl.classList.remove('mb-6');
+        // In clock mode, allow user to still toggle "Focus Tracking" if they want, or keep clean
+        controlsEl.classList.remove('hidden');
+      }
+
+      updateControlButtonsUI();
+      updateDisplay();
+    }
+
+    function toggleStartPause() {
+      playChime('click');
+      if (state.isRunning) {
+        pauseEngine();
+      } else {
+        startEngine();
+      }
+    }
+
+    function handleDisplayClick() {
+      toggleStartPause();
+    }
+
+    function startEngine() {
+      if (state.isRunning) return;
+
+      // If timer reached 0, reset it before starting again
+      if (state.mode === 'timer' && state.timerRemainingSec <= 0) {
+        state.timerRemainingSec = state.timerDurationSec;
+      }
+
+      state.isRunning = true;
+      lastTickTimestamp = Date.now();
+      updateControlButtonsUI();
+
+      intervalId = setInterval(() => {
+        const now = Date.now();
+        const deltaSec = Math.floor((now - lastTickTimestamp) / 1000);
+
+        if (deltaSec >= 1) {
+          lastTickTimestamp += deltaSec * 1000;
+
+          // Record study time for current subject across ANY active mode
+          state.currentSessionFocusedSec += deltaSec;
+          incrementSubjectStudyTime(deltaSec);
+
+          if (state.mode === 'timer') {
+            state.timerRemainingSec = Math.max(0, state.timerRemainingSec - deltaSec);
+            if (state.timerRemainingSec === 0) {
+              handleTimerComplete();
+            }
+          } else if (state.mode === 'stopwatch') {
+            state.stopwatchElapsedSec += deltaSec;
+          }
+
+          updateDisplay();
+        }
+      }, 200);
+    }
+
+    function pauseEngine() {
+      state.isRunning = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      updateControlButtonsUI();
+      updateDisplay();
+    }
+
+    function resetCurrentMode() {
+      playChime('click');
+      pauseEngine();
+
+      // Preserve real study time in the archive before resetting the display.
+      const actualFocusedSec = Math.round(state.currentSessionFocusedSec || 0);
+      if (actualFocusedSec >= 5) {
+        recordStudySession(actualFocusedSec, state.mode.toUpperCase());
+      } else {
+        state.currentSessionFocusedSec = 0;
+      }
+
+      if (state.mode === 'timer') {
+        state.timerRemainingSec = state.timerDurationSec;
+      } else if (state.mode === 'stopwatch') {
+        state.stopwatchElapsedSec = 0;
+      }
+      updateDisplay();
+    }
+
+    function handleTimerComplete() {
+      pauseEngine();
+      playChime('complete');
+      // Save the actual unsaved focus time, not the planned timer duration.
+      const actualFocusedSec = Math.round(state.currentSessionFocusedSec || 0);
+      if (actualFocusedSec >= 5) {
+        recordStudySession(actualFocusedSec, 'TIMER');
+      }
+      showCompletionBanner();
+      updateDisplay();
+    }
+
+    function setTimerMinutes(mins) {
+      const safeMinutes = Math.min(480, Math.max(1, Math.round(Number(mins) || 25)));
+      playChime('click');
+      pauseEngine();
+      state.timerDurationSec = safeMinutes * 60;
+      state.timerRemainingSec = safeMinutes * 60;
+
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        const isSelected = Number(btn.getAttribute('data-mins')) === safeMinutes;
+        btn.classList.toggle('is-selected', isSelected);
+        btn.setAttribute('aria-pressed', String(isSelected));
+      });
+
+      const customTrigger = document.getElementById('custom-duration-trigger');
+      const isPreset = [25, 45, 60, 90].includes(safeMinutes);
+      if (customTrigger) {
+        customTrigger.classList.toggle('is-selected', !isPreset);
+        customTrigger.setAttribute('aria-pressed', String(!isPreset));
+      }
+
+      const slider = document.getElementById('custom-duration-slider');
+      if (slider) {
+        slider.value = String(Math.min(480, Math.max(5, Math.round(safeMinutes / 5) * 5)));
+        updateCustomDurationPreview(slider.value);
+      }
+      updateDisplay();
+    }
+
+    function toggleCustomDurationPanel(forceOpen) {
+      const panel = document.getElementById('custom-duration-panel');
+      const trigger = document.getElementById('custom-duration-trigger');
+      if (!panel || !trigger) return;
+
+      const shouldOpen = typeof forceOpen === 'boolean'
+        ? forceOpen
+        : !panel.classList.contains('is-open');
+
+      panel.classList.toggle('is-open', shouldOpen);
+      trigger.setAttribute('aria-expanded', String(shouldOpen));
+
+      if (shouldOpen) {
+        const slider = document.getElementById('custom-duration-slider');
+        const currentMinutes = Math.max(5, Math.round(state.timerDurationSec / 300) * 5);
+        slider.value = String(Math.min(480, currentMinutes));
+        updateCustomDurationPreview(slider.value);
+      }
+    }
+
+    function updateCustomDurationPreview(rawMinutes) {
+      const minutes = Math.min(480, Math.max(5, Math.round(Number(rawMinutes) / 5) * 5));
+      const valueEl = document.getElementById('custom-duration-value');
+      if (!valueEl) return;
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      let label;
+      if (hours === 0) label = `${minutes} min`;
+      else if (remainingMinutes === 0) label = `${hours} hr`;
+      else label = `${hours} hr ${remainingMinutes} min`;
+      valueEl.textContent = label;
+    }
+
+    function applyCustomDuration() {
+      const slider = document.getElementById('custom-duration-slider');
+      if (!slider) return;
+      const minutes = Math.min(480, Math.max(5, Number(slider.value) || 45));
+      if (state.mode !== 'timer') switchMode('timer');
+      setTimerMinutes(minutes);
+      toggleCustomDurationPanel(false);
+    }
+
+    /***************************************************************************
+     * UI DISPLAY & RING RENDERING
+     ***************************************************************************/
+    function formatMMSS(totalSeconds) {
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+      if (hrs > 0) {
+        return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function updateDisplay() {
+      const timeEl = document.getElementById('time-display');
+      const topSubEl = document.getElementById('clock-sub-top');
+      const bottomSubEl = document.getElementById('clock-sub-bottom');
+      const ringEl = document.getElementById('progress-ring');
+      const statusDot = document.getElementById('status-dot');
+      const statusLabel = document.getElementById('status-label');
+
+      // Status Indicator
+      if (state.isRunning) {
+        statusDot.classList.add('animate-subtle-pulse');
+        statusLabel.textContent = `${state.scholarName} · ${state.currentSubject}`;
+        statusLabel.className = "font-mono text-[11px] accent-text tracking-wider uppercase";
+      } else {
+        statusDot.classList.remove('animate-subtle-pulse');
+        statusLabel.textContent = `${state.scholarName} · Ready`;
+        statusLabel.className = "font-mono text-[11px] text-white/40 tracking-wider uppercase";
+      }
+
+      if (state.mode === 'timer') {
+        const formatted = formatMMSS(state.timerRemainingSec);
+        timeEl.textContent = formatted;
+        const totalMins = Math.round(state.timerDurationSec / 60);
+        topSubEl.textContent = `Focus session · ${totalMins} min`;
+        bottomSubEl.textContent = state.isRunning ? `Studying ${state.currentSubject}` : 'Ready when you are';
+
+        // Adjust font size if hours are displayed
+        timeEl.className = state.timerRemainingSec >= 3600
+          ? "font-mono tabular-nums-display text-5xl sm:text-6xl font-light tracking-tight text-white cursor-pointer select-none"
+          : "font-mono tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] font-light tracking-tight text-white cursor-pointer select-none";
+
+        // Progress Ring Calculation
+        const fraction = state.timerDurationSec > 0
+          ? state.timerRemainingSec / state.timerDurationSec
+          : 0;
+        const offset = RING_CIRCUMFERENCE * (1 - fraction);
+        ringEl.style.strokeDashoffset = offset;
+        document.title = state.isRunning ? `(${formatted}) ${state.currentSubject} — Aether` : 'Aether — Focus Timer | IOMI Roman & Co.';
+
+      } else if (state.mode === 'stopwatch') {
+        const formatted = formatMMSS(state.stopwatchElapsedSec);
+        timeEl.textContent = formatted;
+        topSubEl.textContent = 'Stopwatch';
+        bottomSubEl.textContent = state.isRunning ? `Studying ${state.currentSubject}` : 'Paused';
+
+        timeEl.className = state.stopwatchElapsedSec >= 3600
+          ? "font-mono tabular-nums-display text-5xl sm:text-6xl font-light tracking-tight text-white cursor-pointer select-none"
+          : "font-mono tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] font-light tracking-tight text-white cursor-pointer select-none";
+
+        // Ring loops smoothly every 60 seconds in stopwatch mode
+        const secInMin = (state.stopwatchElapsedSec % 60) / 60;
+        const offset = RING_CIRCUMFERENCE * (1 - secInMin);
+        ringEl.style.strokeDashoffset = offset;
+        document.title = state.isRunning ? `(${formatted}) ${state.currentSubject} — Aether` : 'Aether — Focus Timer | IOMI Roman & Co.';
+
+      } else if (state.mode === 'clock') {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const secs = String(now.getSeconds()).padStart(2, '0');
+
+        timeEl.textContent = `${hours}:${mins}`;
+        timeEl.className = "font-mono tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] font-light tracking-tight text-white cursor-pointer select-none";
+
+        const dateStr = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        topSubEl.textContent = `${dateStr} • :${secs}`;
+        bottomSubEl.textContent = state.isRunning ? `Tracking ${state.currentSubject}` : 'Local time';
+
+        // Ring represents seconds of current minute
+        const fraction = now.getSeconds() / 60;
+        const offset = RING_CIRCUMFERENCE * (1 - fraction);
+        ringEl.style.strokeDashoffset = offset;
+        document.title = `${hours}:${mins} · ${state.currentSubject} — Aether`;
+      }
+    }
+
+    function updateControlButtonsUI() {
+      const btnText = document.getElementById('start-pause-text');
+      const playIcon = document.getElementById('play-icon');
+      const resetBtn = document.getElementById('reset-btn');
+
+      if (state.mode === 'clock') {
+        resetBtn.classList.add('hidden');
+        btnText.textContent = state.isRunning ? 'Pause Log' : 'Log Session';
+      } else {
+        resetBtn.classList.remove('hidden');
+        btnText.textContent = state.isRunning ? 'Pause' : 'Start';
+      }
+
+      playIcon.setAttribute('data-lucide', state.isRunning ? 'pause' : 'play');
+      lucide.createIcons();
+    }
+
+    /***************************************************************************
+     * SUBJECT INPUT & QUICK PILLS LOGIC
+     ***************************************************************************/
+    function handleSubjectInput(val) {
+      const cleaned = val.trim();
+      state.currentSubject = cleaned || 'General Study';
+      renderSubjectPills();
+      updateSubjectTodayBadge();
+      if (state.isRunning) {
+        updateDisplay();
+      }
+      saveToStorage();
+    }
+
+    function selectSubjectPill(subjectName) {
+      playChime('click');
+      state.currentSubject = subjectName;
+      const inputEl = document.getElementById('subject-input');
+      inputEl.value = subjectName;
+      renderSubjectPills();
+      updateSubjectTodayBadge();
+      updateDisplay();
+      saveToStorage();
+    }
+
+    function addCurrentSubjectToPills() {
+      const subj = state.currentSubject.trim();
+      if (!subj) return;
+      if (!state.customSubjects.includes(subj)) {
+        state.customSubjects.unshift(subj);
+        if (state.customSubjects.length > 7) {
+          state.customSubjects.pop();
+        }
+        saveToStorage();
+        renderSubjectPills();
+      }
+    }
+
+    function renderSubjectPills() {
+      const container = document.getElementById('subject-pills-container');
+      container.innerHTML = '';
+
+      state.customSubjects.forEach(subj => {
+        const isSelected = subj.toLowerCase() === state.currentSubject.toLowerCase();
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => selectSubjectPill(subj);
+        btn.className = isSelected
+          ? "px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-white border border-white/25 shadow-sm transition-all"
+          : "px-3 py-1 rounded-full text-xs text-white/45 hover:text-white/80 bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all";
+        btn.textContent = subj;
+        container.appendChild(btn);
+      });
+
+      // If user typed a brand new subject not in pills, offer a subtle "+ Save Pill" chip
+      const exists = state.customSubjects.some(s => s.toLowerCase() === state.currentSubject.trim().toLowerCase());
+      if (!exists && state.currentSubject.trim().length > 1) {
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.onclick = addCurrentSubjectToPills;
+        saveBtn.className = "px-2.5 py-1 rounded-full text-[11px] font-mono accent-text bg-white/[0.03] border border-white/10 hover:border-white/25 transition-all flex items-center gap-1";
+        saveBtn.innerHTML = `<span>+ Pin "${state.currentSubject.trim()}"</span>`;
+        container.appendChild(saveBtn);
+      }
+    }
+
+    function updateSubjectInputUI() {
+      const inputEl = document.getElementById('subject-input');
+      inputEl.value = state.currentSubject;
+      updateSubjectTodayBadge();
+    }
+
+    /***************************************************************************
+     * DAILY STUDY STATS & FOOTER LOG
+     ***************************************************************************/
+    function incrementSubjectStudyTime(seconds) {
+      const currentDayKey = getLocalDateKey(new Date());
+      if (state.todayKey !== currentDayKey) {
+        state.todayKey = currentDayKey;
+        state.subjectSecondsToday = {};
+      }
+
+      const subj = state.currentSubject.trim() || 'General Study';
+      if (!state.subjectSecondsToday[subj]) {
+        state.subjectSecondsToday[subj] = 0;
+      }
+      state.subjectSecondsToday[subj] += seconds;
+
+      // Also keep lastSubject & streak updated live as the user studies
+      registerStudyStreakForToday();
+      state.lastSubject = subj;
+      state.lastStudyTimestamp = new Date().toISOString();
+      state.lastStudyDurationSec = state.subjectSecondsToday[subj];
+
+      updateSubjectTodayBadge();
+      updateScholarHUD(false);
+      updateStatsFooter();
+      saveToStorage();
+    }
+
+    function formatDurationShort(totalSeconds) {
+      if (!totalSeconds || totalSeconds < 60) {
+        return totalSeconds ? `${totalSeconds}s` : '0m';
+      }
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      if (hrs > 0) {
+        return `${hrs}h ${mins}m`;
+      }
+      return `${mins}m`;
+    }
+
+    function updateSubjectTodayBadge() {
+      const badge = document.getElementById('subject-today-badge');
+      const subj = state.currentSubject.trim() || 'General Study';
+      const secs = state.subjectSecondsToday[subj] || 0;
+      badge.textContent = `${formatDurationShort(secs)} today`;
+    }
+
+    function updateStatsFooter() {
+      const totalEl = document.getElementById('total-today-display');
+      const listEl = document.getElementById('subject-breakdown-list');
+
+      const entries = Object.entries(state.subjectSecondsToday).filter(([_, s]) => s > 0);
+      const totalSeconds = entries.reduce((acc, [_, s]) => acc + s, 0);
+
+      totalEl.textContent = formatDurationShort(totalSeconds);
+
+      if (entries.length === 0) {
+        listEl.innerHTML = `<span class="text-white/30 font-mono text-[11px]">No sessions logged yet today</span>`;
+        return;
+      }
+
+      // Sort by most studied
+      entries.sort((a, b) => b[1] - a[1]);
+
+      listEl.innerHTML = entries.map(([subject, secs]) => `
+        <button onclick="selectSubjectPill('${subject.replace(/'/g, "\\'")}')"
+          class="px-2.5 py-0.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[11px] flex items-center gap-1.5 transition-colors">
+          <span class="text-white/80 font-medium">${subject}</span>
+          <span class="font-mono text-white/45">${formatDurationShort(secs)}</span>
+        </button>
+      `).join('');
+    }
+
+    function resetTodayStats() {
+      state.todayKey = getLocalDateKey(new Date());
+      state.subjectSecondsToday = {};
+      updateSubjectTodayBadge();
+      updateStatsFooter();
+      saveToStorage();
+    }
+
+    /***************************************************************************
+     * UTILITIES: SOUND, THEME, FULLSCREEN, BANNER
+     ***************************************************************************/
+    function toggleSound() {
+      state.soundEnabled = !state.soundEnabled;
+      updateSoundIcon();
+      if (state.soundEnabled) playChime('click');
+      saveToStorage();
+    }
+
+    function updateSoundIcon() {
+      const icon = document.getElementById('sound-icon');
+      icon.setAttribute('data-lucide', state.soundEnabled ? 'volume-2' : 'volume-x');
+      lucide.createIcons();
+    }
+
+    function toggleThemeMenu() {
+      const menu = document.getElementById('theme-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function setTheme(themeKey, labelName, shouldSave = true) {
+      state.theme = themeKey;
+      state.themeName = labelName;
+      document.body.setAttribute('data-theme', themeKey);
+      document.getElementById('current-theme-name').textContent = labelName;
+      document.getElementById('theme-menu').classList.add('hidden');
+      if (shouldSave) saveToStorage();
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const icon = document.getElementById('fullscreen-icon');
+      icon.setAttribute('data-lucide', document.fullscreenElement ? 'minimize-2' : 'maximize-2');
+      lucide.createIcons();
+    });
+
+    function showCompletionBanner() {
+      showNotificationBanner(
+        `${state.currentSubject} Session Complete`,
+        `Saved for ${state.scholarName} (${Math.round(state.timerDurationSec / 60)}m • Streak: ${state.streakCount}d)`
+      );
+    }
+
+    function showNotificationBanner(titleText, subtitleText) {
+      const banner = document.getElementById('completion-banner');
+      const title = document.getElementById('banner-title');
+      const sub = document.getElementById('banner-subtitle');
+      title.textContent = titleText;
+      sub.textContent = subtitleText;
+      banner.classList.remove('hidden');
+      setTimeout(() => {
+        hideCompletionBanner();
+      }, 6500);
+    }
+
+    function hideCompletionBanner() {
+      document.getElementById('completion-banner').classList.add('hidden');
+    }
+
+    // Boot application on load
+    window.onload = initApp;
+  </script>
+</body>
+</html>
