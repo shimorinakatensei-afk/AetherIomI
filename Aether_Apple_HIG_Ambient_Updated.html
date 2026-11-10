@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0c0e" />
+  <meta name="description" content="Aether is a calm, focused study timer and personal study tracker." />
+  <title>Aether — Focus Timer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', '"Helvetica Neue"', 'sans-serif'],
+            mono: ['"SF Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-canvas: #0b0c0e;
+      --surface-primary: rgba(24, 25, 29, 0.78);
+      --surface-elevated: #202227;
+      --surface-control: #17181c;
+      --surface-segment-active: #2c2f36;
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --text-primary: #f5f5f7;
+      --text-secondary: #a1a1aa;
+      --text-tertiary: #8e8e93;
+      --border-hairline: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --accent: #0a84ff;
+      --accent-soft: rgba(10, 132, 255, 0.15);
+      --ring-track: rgba(255, 255, 255, 0.08);
+      --success: #30d158;
+      --warning: #ff9f0a;
+      --danger: #ff453a;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    /* Apple-Inspired Semantic Themes */
+    [data-theme="cosmos"] {
+      --bg-canvas: #0b0c0e;
+      --surface-primary: rgba(24, 25, 29, 0.78);
+      --surface-elevated: #202227;
+      --accent: #0a84ff;
+      --accent-soft: rgba(10, 132, 255, 0.16);
+    }
+    [data-theme="slate"] {
+      --bg-canvas: #0a0d0c;
+      --surface-primary: rgba(21, 27, 25, 0.78);
+      --surface-elevated: #1c2421;
+      --accent: #30d158;
+      --accent-soft: rgba(48, 209, 88, 0.15);
+    }
+    [data-theme="warm"] {
+      --bg-canvas: #0e0c0a;
+      --surface-primary: rgba(28, 24, 21, 0.78);
+      --surface-elevated: #26211c;
+      --accent: #ff9f0a;
+      --accent-soft: rgba(255, 159, 10, 0.16);
+    }
+    [data-theme="minimal"] {
+      --bg-canvas: #09090b;
+      --surface-primary: rgba(24, 24, 27, 0.78);
+      --surface-elevated: #222225;
+      --accent: #e4e4e7;
+      --accent-soft: rgba(228, 228, 231, 0.14);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    html {
+      min-width: 320px;
+      background-color: var(--bg-canvas);
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+      letter-spacing: -0.011em;
+      transition: background-color 200ms var(--ease-apple), color 200ms var(--ease-apple);
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+      transition: background-color 150ms var(--ease-apple),
+                  color 150ms var(--ease-apple),
+                  border-color 150ms var(--ease-apple),
+                  transform 120ms var(--ease-apple),
+                  opacity 150ms var(--ease-apple);
+    }
+
+    button:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    ::selection {
+      background: var(--accent-soft);
+      color: var(--text-primary);
+    }
+
+    /* HIG Materials & Surfaces */
+    .hig-surface {
+      background: var(--surface-primary);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+    }
+
+    .hig-pill {
+      background: var(--surface-control);
+      border: 1px solid var(--border-hairline);
+      border-radius: 9999px;
+    }
+
+    .hig-segmented {
+      background: var(--surface-control);
+      border: 1px solid var(--border-hairline);
+      border-radius: 10px;
+      padding: 3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .mode-btn {
+      min-height: 30px;
+      padding: 5px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+    }
+
+    .mode-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .mode-btn.is-active {
+      background: var(--surface-segment-active);
+      color: var(--text-primary);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .accent-text {
+      color: var(--accent);
+    }
+
+    .accent-bg {
+      background-color: var(--accent);
+    }
+
+    /* Duration Preset Chips */
+    .preset-btn,
+    .custom-duration-trigger {
+      min-height: 32px;
+      padding: 5px 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border-hairline);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-btn:hover,
+    .custom-duration-trigger:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .preset-btn.is-selected,
+    .custom-duration-trigger.is-selected {
+      background: var(--accent-soft);
+      color: var(--text-primary);
+      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+
+    /* Custom Duration Popover */
+    .custom-duration-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 50;
+      width: min(300px, calc(100vw - 32px));
+      padding: 16px;
+      border-radius: 14px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.55);
+    }
+
+    .custom-duration-panel.is-open {
+      display: block;
+      animation: popover-in 140ms var(--ease-apple);
+    }
+
+    @keyframes popover-in {
+      from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .custom-duration-slider {
+      display: block;
+      width: 100%;
+      margin: 16px 0 6px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Circular Timer Ring & Typography */
+    .timer-ring-svg {
+      width: clamp(268px, 36vw, 336px);
+      height: auto;
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-circle {
+      stroke: var(--accent);
+      transition: stroke-dashoffset 280ms var(--ease-apple), stroke 200ms var(--ease-apple);
+    }
+
+    .tabular-nums-display {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      letter-spacing: -0.055em;
+      line-height: 1;
+      font-weight: 260;
+    }
+
+    /* Primary & Secondary Controls */
+    .btn-primary-action {
+      min-height: 40px;
+      padding: 0 22px;
+      border-radius: 9999px;
+      background: var(--text-primary);
+      color: #0b0c0e;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: none;
+    }
+
+    .btn-primary-action:hover {
+      background: #ffffff;
+    }
+
+    .btn-secondary-action {
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 9999px;
+      background: var(--surface-control);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-secondary-action:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .btn-icon-only {
+      width: 40px;
+      padding: 0;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 9999px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  
+
+    /* Human Interface Guidelines refinement: hierarchy, clarity, and adaptability */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+      font-optical-sizing: auto;
+      text-rendering: optimizeLegibility;
+    }
+
+    .hig-surface {
+      background: var(--surface-primary);
+      border-color: var(--border-hairline);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+    }
+
+    @supports (backdrop-filter: blur(1px)) {
+      .hig-surface {
+        backdrop-filter: saturate(150%) blur(16px);
+        -webkit-backdrop-filter: saturate(150%) blur(16px);
+      }
+    }
+
+    @supports not (backdrop-filter: blur(1px)) {
+      .hig-surface { background: var(--surface-elevated); }
+    }
+
+    .mode-btn {
+      min-height: 34px;
+      font-size: 13px;
+    }
+
+    .preset-btn,
+    .custom-duration-trigger {
+      min-height: 36px;
+      font-size: 13px;
+    }
+
+    .tabular-nums-display {
+      font-weight: 300;
+      letter-spacing: -0.045em;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    #time-display {
+      max-width: 100%;
+      white-space: nowrap;
+      border-radius: 10px;
+      touch-action: manipulation;
+    }
+
+    #time-display:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 8px;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible,
+    [role="button"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .btn-primary-action,
+    .btn-secondary-action {
+      min-height: 42px;
+    }
+
+    .custom-duration-panel {
+      border-color: var(--border-strong);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+    }
+
+    #records-modal [role="dialog"] {
+      overscroll-behavior: contain;
+    }
+
+    #saved-records-list {
+      scrollbar-gutter: stable;
+    }
+
+    @media (max-width: 640px) {
+      .timer-ring-svg {
+        width: clamp(248px, 76vw, 304px);
+      }
+
+      #custom-duration-panel {
+        left: 50%;
+        right: auto;
+      }
+
+      #custom-duration-panel.is-open {
+        animation-name: popover-in-mobile;
+      }
+
+      @keyframes popover-in-mobile {
+        from { opacity: 0; transform: translate(-50%, -4px) scale(0.98); }
+        to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      }
+
+      #records-modal [role="dialog"] {
+        max-height: min(88svh, 760px);
+        padding: 18px;
+      }
+    }
+
+    @media (pointer: coarse) {
+      .mode-btn,
+      .preset-btn,
+      .custom-duration-trigger,
+      .btn-primary-action,
+      .btn-secondary-action,
+      .hig-pill {
+        min-height: 44px;
+      }
+
+      .hig-pill.w-8,
+      .btn-icon-only {
+        width: 44px;
+        min-width: 44px;
+      }
+
+      .custom-duration-slider {
+        min-height: 32px;
+      }
+    }
+
+    @media (prefers-contrast: more) {
+      :root {
+        --text-secondary: #c4c4cc;
+        --text-tertiary: #b0b0b8;
+        --border-hairline: rgba(255, 255, 255, 0.18);
+        --border-strong: rgba(255, 255, 255, 0.28);
+      }
+    }
+
+  </style>
+</head>
+<body data-theme="cosmos" class="flex flex-col justify-between relative">
+
+  <!-- Top Navigation Bar -->
+  <header class="w-full max-w-5xl mx-auto px-5 sm:px-7 pt-5 pb-3 flex flex-wrap items-center justify-between gap-3 z-20">
+    <!-- Left Brand & Live Status -->
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="w-2 h-2 rounded-full bg-zinc-500 transition-colors duration-300 shrink-0" id="status-dot" aria-hidden="true"></span>
+      <span class="text-sm font-semibold tracking-tight text-white">aether</span>
+      <span class="text-white/20 text-xs">·</span>
+      <span id="status-label" class="text-xs text-zinc-400 truncate" aria-live="polite" aria-atomic="true">Ready</span>
+    </div>
+
+    <!-- Center Apple Segmented Mode Control -->
+    <nav class="hig-segmented order-3 sm:order-2 w-full sm:w-auto justify-center" role="group" aria-label="Clock mode">
+      <button onclick="switchMode('timer')" id="mode-btn-timer" aria-pressed="true" class="mode-btn is-active flex-1 sm:flex-initial justify-center">
+        <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+        <span>Timer</span>
+      </button>
+      <button onclick="switchMode('stopwatch')" id="mode-btn-stopwatch" aria-pressed="false" class="mode-btn flex-1 sm:flex-initial justify-center">
+        <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+        <span>Stopwatch</span>
+      </button>
+      <button onclick="switchMode('clock')" id="mode-btn-clock" aria-pressed="false" class="mode-btn flex-1 sm:flex-initial justify-center">
+        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+        <span>Clock</span>
+      </button>
+    </nav>
+
+    <!-- Right Utilities -->
+    <div class="flex items-center gap-1.5 order-2 sm:order-3">
+      <!-- Records Drawer Button -->
+      <button id="records-open-btn" onclick="toggleRecordsModal(true)" title="Open Saved Study Records"
+        class="hig-pill h-8 px-3 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+        <i data-lucide="layers" class="w-3.5 h-3.5 accent-text"></i>
+        <span class="hidden sm:inline">Records</span>
+        <span id="records-count-badge" class="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px] font-medium text-zinc-200 tabular-nums">0</span>
+      </button>
+
+      <!-- Sound Toggle -->
+      <button onclick="toggleSound()" id="sound-btn" title="Toggle UI and ambient sounds" aria-label="Toggle UI and ambient sounds" aria-pressed="true"
+        class="hig-pill w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5">
+        <i data-lucide="volume-2" id="sound-icon" class="w-3.5 h-3.5"></i>
+      </button>
+
+      <!-- Optional Ambient Sound Selector -->
+      <div class="relative">
+        <button onclick="toggleAmbientMenu()" id="ambient-btn" title="Ambient Focus Sound"
+          aria-label="Choose ambient focus sound" aria-haspopup="menu" aria-expanded="false" aria-controls="ambient-menu"
+          class="hig-pill h-8 px-3 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <i data-lucide="cloud-rain" id="ambient-icon" class="w-3.5 h-3.5 text-zinc-400" aria-hidden="true"></i>
+          <span id="current-ambient-name" class="hidden sm:inline">Off</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-60" aria-hidden="true"></i>
+        </button>
+
+        <div id="ambient-menu" role="menu" aria-label="Ambient focus sound options"
+          class="hidden absolute right-0 mt-2 w-44 rounded-xl p-1.5 z-50 bg-[#202227] border border-white/15 shadow-2xl">
+          <button role="menuitem" onclick="setAmbientSound('off', 'Off')" class="w-full px-3 py-2 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Off</span>
+            <i data-lucide="volume-x" class="w-3.5 h-3.5 text-zinc-500" aria-hidden="true"></i>
+          </button>
+          <button role="menuitem" onclick="setAmbientSound('rain', 'Rain')" class="w-full px-3 py-2 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Rain</span>
+            <i data-lucide="cloud-rain" class="w-3.5 h-3.5 accent-text" aria-hidden="true"></i>
+          </button>
+          <button role="menuitem" onclick="setAmbientSound('cafe', 'Café')" class="w-full px-3 py-2 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Café Ambience</span>
+            <i data-lucide="coffee" class="w-3.5 h-3.5 accent-text" aria-hidden="true"></i>
+          </button>
+          <button role="menuitem" onclick="setAmbientSound('whitenoise', 'White Noise')" class="w-full px-3 py-2 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Soft White Noise</span>
+            <i data-lucide="wind" class="w-3.5 h-3.5 accent-text" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Appearance Menu -->
+      <div class="relative">
+        <button onclick="toggleThemeMenu()" id="theme-btn" title="Appearance" aria-haspopup="menu" aria-expanded="false" aria-controls="theme-menu"
+          class="hig-pill h-8 px-3 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full accent-bg"></span>
+          <span id="current-theme-name" class="hidden sm:inline">Dark</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-60"></i>
+        </button>
+
+        <div id="theme-menu" role="menu" aria-label="Appearance options" class="hidden absolute right-0 mt-2 w-40 rounded-xl p-1.5 z-50 bg-[#202227] border border-white/15 shadow-2xl">
+          <button role="menuitem" onclick="setTheme('cosmos', 'Dark')" class="w-full px-3 py-1.5 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Dark</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#0a84ff]"></span>
+          </button>
+          <button role="menuitem" onclick="setTheme('slate', 'Forest')" class="w-full px-3 py-1.5 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Forest</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#30d158]"></span>
+          </button>
+          <button role="menuitem" onclick="setTheme('warm', 'Warm')" class="w-full px-3 py-1.5 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Warm</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#ff9f0a]"></span>
+          </button>
+          <button role="menuitem" onclick="setTheme('minimal', 'Monochrome')" class="w-full px-3 py-1.5 rounded-lg text-left text-xs flex items-center justify-between hover:bg-white/5 text-zinc-200">
+            <span>Monochrome</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-zinc-200"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fullscreen Toggle -->
+      <button onclick="toggleFullscreen()" title="Enter fullscreen (F)" aria-label="Toggle Fullscreen"
+        class="hig-pill w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5">
+        <i data-lucide="maximize-2" id="fullscreen-icon" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Scholar Profile & Study Summary Strip -->
+  <section class="w-full max-w-5xl mx-auto px-5 sm:px-7 pt-1 z-10">
+    <div class="border-y border-white/[0.08] py-3 grid grid-cols-2 lg:grid-cols-4 gap-y-3 gap-x-4 items-center">
+      <!-- 1. Scholar Name -->
+      <div class="flex items-center gap-2.5 min-w-0 pr-2 lg:border-r border-white/[0.07]">
+        <i data-lucide="user" class="w-4 h-4 accent-text shrink-0"></i>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1">
+            <span class="text-[11px] font-medium text-zinc-500">Scholar</span>
+            <i data-lucide="pencil" class="w-2.5 h-2.5 text-zinc-600"></i>
+          </div>
+          <input
+            id="scholar-name-input"
+            type="text"
+            value="Scholar"
+            placeholder="Your name"
+            aria-label="Your name"
+            oninput="handleNameInput(this.value)"
+            onkeydown="if(event.key==='Enter') this.blur()"
+            class="w-full bg-transparent text-xs sm:text-[13px] font-semibold text-white focus:outline-none truncate"
+          />
+        </div>
+      </div>
+
+      <!-- 2. Personal Study Streak -->
+      <div class="flex items-center gap-2.5 min-w-0 pr-2 lg:border-r border-white/[0.07]">
+        <i data-lucide="flame" class="w-4 h-4 accent-text shrink-0"></i>
+        <div class="min-w-0 flex-1">
+          <span class="text-[11px] font-medium text-zinc-500 block">Streak</span>
+          <div class="flex items-baseline gap-1.5">
+            <span id="hud-streak-count" class="text-xs sm:text-[13px] font-semibold text-white tabular-nums">0 Days</span>
+            <span id="hud-streak-status" class="text-[11px] text-zinc-500 truncate">Start today</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Last Subject Studied -->
+      <div class="flex items-center gap-2.5 min-w-0 pr-2 lg:border-r border-white/[0.07]">
+        <i data-lucide="book-marked" class="w-4 h-4 accent-text shrink-0"></i>
+        <div class="min-w-0 flex-1">
+          <span class="text-[11px] font-medium text-zinc-500 block">Last Subject</span>
+          <div id="hud-last-subject" class="text-xs sm:text-[13px] font-semibold text-white truncate" title="No subject recorded yet">
+            —
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Most Recent Session -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <i data-lucide="clock-3" class="w-4 h-4 accent-text shrink-0"></i>
+        <div class="min-w-0 flex-1">
+          <span class="text-[11px] font-medium text-zinc-500 block">Last Session</span>
+          <div id="hud-last-study" class="text-xs sm:text-[13px] font-semibold text-white truncate tabular-nums" title="Last recorded study session">
+            No record yet
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Focus Workspace -->
+  <main class="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full z-10">
+
+    <!-- Duration Presets Bar (Timer Mode) -->
+    <div id="timer-presets" class="mb-4 flex flex-wrap items-center justify-center gap-1.5 transition-all duration-200" role="group" aria-label="Timer duration presets">
+      <button onclick="setTimerMinutes(25)" data-mins="25" aria-pressed="true" class="preset-btn is-selected">25m</button>
+      <button onclick="setTimerMinutes(45)" data-mins="45" aria-pressed="false" class="preset-btn">45m</button>
+      <button onclick="setTimerMinutes(60)" data-mins="60" aria-pressed="false" class="preset-btn">60m</button>
+      <button onclick="setTimerMinutes(90)" data-mins="90" aria-pressed="false" class="preset-btn">90m</button>
+
+      <!-- Custom Duration Popover -->
+      <div id="custom-duration-wrap" class="relative">
+        <button id="custom-duration-trigger" type="button" onclick="toggleCustomDurationPanel()"
+          aria-expanded="false" aria-controls="custom-duration-panel" aria-pressed="false"
+          class="custom-duration-trigger">
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+          <span>Custom</span>
+        </button>
+
+        <div id="custom-duration-panel" class="custom-duration-panel" role="group" aria-label="Choose a custom focus duration">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="text-[11px] font-medium text-zinc-400">Focus duration</div>
+              <div id="custom-duration-value" class="text-2xl font-semibold text-white tracking-tight tabular-nums mt-0.5">45 min</div>
+            </div>
+            <button type="button" class="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5" onclick="toggleCustomDurationPanel(false)" aria-label="Close custom duration">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <input id="custom-duration-slider" class="custom-duration-slider" type="range" min="5" max="480" step="5" value="45"
+            oninput="updateCustomDurationPreview(this.value)" aria-label="Custom focus duration in minutes" />
+          <div class="flex justify-between text-[11px] text-zinc-500 tabular-nums">
+            <span>5 min</span>
+            <span>8 hr</span>
+          </div>
+          <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-white/[0.08]">
+            <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/5" onclick="toggleCustomDurationPanel(false)">Cancel</button>
+            <button type="button" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-zinc-950 hover:bg-zinc-100" onclick="applyCustomDuration()">Set Duration</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary Timer Ring & Readout -->
+    <div class="relative flex items-center justify-center my-1">
+      <svg class="timer-ring-svg" viewBox="0 0 320 320" aria-hidden="true">
+        <!-- Background Track -->
+        <circle cx="160" cy="160" r="138" fill="none" stroke="var(--ring-track)" stroke-width="3" />
+        <!-- Animated Progress Arc -->
+        <circle id="progress-ring" class="progress-ring-circle" cx="160" cy="160" r="138" fill="none"
+          stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"
+          stroke-dasharray="867.08" stroke-dashoffset="0" />
+      </svg>
+
+      <!-- Inside Ring Display -->
+      <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+        <div id="clock-sub-top" class="text-xs font-medium text-zinc-400 mb-1.5">
+          Focus session · 25 min
+        </div>
+
+        <div id="time-display" role="button" tabindex="0" onclick="handleDisplayClick()"
+          aria-label="Start or pause timer" aria-describedby="clock-sub-top clock-sub-bottom"
+          title="Click, press Enter, or press Space to Start/Pause"
+          class="tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] text-white cursor-pointer select-none">
+          25:00
+        </div>
+
+        <div id="clock-sub-bottom" class="text-xs font-medium text-zinc-500 mt-2 h-4">
+          Ready when you are
+        </div>
+
+        <!-- Primary Controls -->
+        <div id="timer-controls" class="mt-5 flex items-center gap-2">
+          <button onclick="toggleStartPause()" id="start-pause-btn" class="btn-primary-action">
+            <i data-lucide="play" id="play-icon" class="w-3.5 h-3.5 fill-current"></i>
+            <span id="start-pause-text">Start</span>
+          </button>
+          <button onclick="resetCurrentMode()" id="reset-btn" title="Reset (R)" aria-label="Reset timer" class="btn-secondary-action btn-icon-only">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          </button>
+          <button onclick="manualSaveCurrentRecord()" id="log-session-btn" title="Save session to your Scholar Records" class="btn-secondary-action">
+            <i data-lucide="bookmark-plus" class="w-3.5 h-3.5 accent-text"></i>
+            <span>Save</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject Selector & Quick Pills -->
+    <section class="w-full max-w-md mt-4 flex flex-col items-center">
+      <div class="w-full flex items-center justify-between mb-1.5 px-1">
+        <label for="subject-input" class="text-xs font-medium text-zinc-400">Current Subject</label>
+        <span id="subject-today-badge" class="text-xs font-medium text-zinc-400 tabular-nums" title="Total time studied on this subject today">
+          0m today
+        </span>
+      </div>
+
+      <div class="w-full hig-surface px-3.5 py-2.5 flex items-center gap-2.5 focus-within:border-white/25 transition-colors">
+        <i data-lucide="book-open" class="w-4 h-4 accent-text shrink-0"></i>
+        <input
+          id="subject-input"
+          type="text"
+          value="Astrophysics"
+          placeholder="What are you studying?"
+          aria-label="Current Study Subject"
+          oninput="handleSubjectInput(this.value)"
+          onkeydown="if(event.key === 'Enter') { this.blur(); }"
+          class="w-full bg-transparent text-[15px] font-medium text-white placeholder-zinc-500 focus:outline-none truncate"
+        />
+      </div>
+
+      <!-- Quick-Select Subject Tokens -->
+      <div class="mt-2.5 flex flex-wrap items-center justify-center gap-1.5" id="subject-pills-container"></div>
+    </section>
+
+  </main>
+
+  <!-- Floating Capsule Notification Banner -->
+  <div id="completion-banner" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden" role="status" aria-live="polite" aria-atomic="true">
+    <div class="hig-surface px-4 py-2.5 rounded-full border border-white/15 flex items-center gap-2.5 shadow-2xl">
+      <span class="w-2 h-2 rounded-full accent-bg shrink-0"></span>
+      <div class="text-xs">
+        <span class="font-semibold text-white" id="banner-title">Session Complete</span>
+        <span class="text-zinc-400 ml-1" id="banner-subtitle">Saved to your study log.</span>
+      </div>
+      <button onclick="hideCompletionBanner()" class="text-zinc-400 hover:text-white ml-1" aria-label="Dismiss notification">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Saved Study Records Modal -->
+  <div id="records-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md" onclick="if(event.target===this) toggleRecordsModal(false)">
+    <div class="hig-surface w-full max-w-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[85vh]" role="dialog" aria-modal="true" aria-labelledby="records-modal-title" aria-describedby="modal-scholar-summary">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="award" class="w-5 h-5 accent-text"></i>
+          <div>
+            <h2 id="records-modal-title" class="text-base font-semibold text-white tracking-tight">Study Records</h2>
+            <p class="text-xs text-zinc-400" id="modal-scholar-summary">Saved on this device</p>
+          </div>
+        </div>
+        <button type="button" data-modal-close onclick="toggleRecordsModal(false)" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-zinc-400 hover:text-white" aria-label="Close study records">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-4">
+        <div class="bg-white/[0.03] border border-white/[0.07] rounded-xl p-3">
+          <span class="text-[11px] font-medium text-zinc-500 block">Scholar</span>
+          <span id="modal-stat-name" class="text-sm font-semibold text-white truncate block mt-0.5">Scholar</span>
+        </div>
+        <div class="bg-white/[0.03] border border-white/[0.07] rounded-xl p-3">
+          <span class="text-[11px] font-medium text-zinc-500 block">Current Streak</span>
+          <span id="modal-stat-streak" class="text-sm font-semibold text-amber-400 tabular-nums block mt-0.5">0 Days</span>
+        </div>
+        <div class="bg-white/[0.03] border border-white/[0.07] rounded-xl p-3">
+          <span class="text-[11px] font-medium text-zinc-500 block">Last Subject</span>
+          <span id="modal-stat-subject" class="text-sm font-semibold text-white truncate block mt-0.5">—</span>
+        </div>
+        <div class="bg-white/[0.03] border border-white/[0.07] rounded-xl p-3">
+          <span class="text-[11px] font-medium text-zinc-500 block">Last Study</span>
+          <span id="modal-stat-last" class="text-xs font-medium text-zinc-200 truncate tabular-nums block mt-1">—</span>
+        </div>
+      </div>
+
+      <!-- Saved Records List -->
+      <div class="flex-1 overflow-y-auto pr-1 space-y-2" id="saved-records-list"></div>
+
+      <!-- Modal Footer -->
+      <div class="pt-4 mt-4 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="manualSaveCurrentRecord()"
+            class="px-3.5 py-2 rounded-lg bg-white text-zinc-950 hover:bg-zinc-100 text-xs font-semibold flex items-center gap-1.5">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            <span>Log Current Session</span>
+          </button>
+          <button onclick="copyRecordsSummary()"
+            class="px-3 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-xs font-medium text-zinc-200 flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="copy-records-btn-text">Copy Summary</span>
+          </button>
+        </div>
+
+        <button onclick="clearAllSavedRecords()"
+          class="text-xs font-medium text-rose-400 hover:text-rose-300">
+          Clear Archive
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimalist Footer -->
+  <footer class="w-full max-w-5xl mx-auto px-5 sm:px-7 pb-5 pt-2 z-20">
+    <div class="border-t border-white/[0.08] pt-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <!-- Left: Today's Total & Per-Subject Breakdown -->
+      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-xs">
+        <div class="flex items-center gap-1.5">
+          <span class="text-zinc-400">Today:</span>
+          <span id="total-today-display" class="font-semibold text-white tabular-nums">0m</span>
+        </div>
+
+        <div class="h-3 w-[1px] bg-white/10 hidden sm:block"></div>
+
+        <div id="subject-breakdown-list" class="flex flex-wrap items-center gap-1.5">
+          <span class="text-zinc-500 text-xs">No sessions logged today</span>
+        </div>
+      </div>
+
+      <!-- Right: Shortcuts & Reset -->
+      <div class="flex items-center gap-4 text-xs text-zinc-500 shrink-0">
+        <div class="hidden md:flex items-center gap-3">
+          <span><kbd class="px-1.5 py-0.5 rounded bg-white/[0.05] border border-white/10 text-zinc-300 text-[11px]">Space</kbd> Start/Pause</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-white/[0.05] border border-white/10 text-zinc-300 text-[11px]">R</kbd> Reset</span>
+        </div>
+        <button onclick="resetTodayStats()" title="Reset today's study log"
+          class="text-zinc-400 hover:text-white transition-colors">
+          Clear Today
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    /***************************************************************************
+     * STATE & CONFIGURATION
+     ***************************************************************************/
+    const DEFAULT_SUBJECTS = [
+      "Astrophysics",
+      "Electric Circuits",
+      "Orbital Mechanics",
+      "Mathematics",
+      "Computer Science"
+    ];
+
+    const RING_CIRCUMFERENCE = 2 * Math.PI * 138; // r = 138 -> ~867.08
+
+    let state = {
+      mode: 'timer',            // 'timer' | 'stopwatch' | 'clock'
+      isRunning: false,
+      soundEnabled: true,
+      ambientType: 'off',       // 'off' | 'rain' | 'cafe' | 'whitenoise'
+      ambientVolume: 0.14,
+      theme: 'cosmos',
+      themeName: 'Dark',
+
+      // Timer state
+      timerDurationSec: 25 * 60,
+      timerRemainingSec: 25 * 60,
+
+      // Stopwatch state
+      stopwatchElapsedSec: 0,
+
+      // Current Session Unsaved Elapsed Tracker
+      currentSessionFocusedSec: 0,
+
+      // Current Subject
+      currentSubject: 'Astrophysics',
+      customSubjects: [...DEFAULT_SUBJECTS],
+
+      // Scholar Profile & Persistent Records
+      scholarName: 'Scholar',
+      streakCount: 0,
+      lastStudyDateKey: null,
+      lastSubject: null,
+      lastStudyTimestamp: null,
+      lastStudyDurationSec: 0,
+      savedRecords: [],
+
+      // Study Time Tracking (in seconds per subject for today)
+      todayKey: getLocalDateKey(new Date()),
+      subjectSecondsToday: {}
+    };
+
+    let intervalId = null;
+    let clockIntervalId = null;
+    let lastTickTimestamp = null;
+    let lastModalTrigger = null;
+
+    function getLocalDateKey(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getYesterdayDateKey() {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return getLocalDateKey(d);
+    }
+
+    /***************************************************************************
+     * INITIALIZATION & LOCAL STORAGE
+     ***************************************************************************/
+    function initApp() {
+      loadFromStorage();
+      verifyStreakIntegrity();
+      lucide.createIcons();
+      renderSubjectPills();
+      updateSubjectInputUI();
+      updateScholarHUD();
+      updateStatsFooter();
+      updateControlButtonsUI();
+      updateDisplay();
+
+      clockIntervalId = setInterval(() => {
+        if (state.mode === 'clock') {
+          updateDisplay();
+        }
+      }, 250);
+
+      window.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        const recordsModal = document.getElementById('records-modal');
+        const modalIsOpen = recordsModal && !recordsModal.classList.contains('hidden');
+
+        if (e.key === 'Escape') {
+          if (modalIsOpen) toggleRecordsModal(false);
+          toggleCustomDurationPanel(false);
+          document.getElementById('theme-menu')?.classList.add('hidden');
+          document.getElementById('theme-btn')?.setAttribute('aria-expanded', 'false');
+          document.getElementById('ambient-menu')?.classList.add('hidden');
+          document.getElementById('ambient-btn')?.setAttribute('aria-expanded', 'false');
+          return;
+        }
+
+        if (modalIsOpen && e.key === 'Tab') {
+          const focusable = Array.from(recordsModal.querySelectorAll(
+            'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+          )).filter(el => el.getClientRects().length > 0);
+          if (focusable.length) {
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && active === first) {
+              e.preventDefault();
+              last.focus();
+            } else if (!e.shiftKey && active === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+          return;
+        }
+
+        if (active && active.id === 'time-display' && e.key === 'Enter') {
+          e.preventDefault();
+          toggleStartPause();
+          return;
+        }
+
+        const isTyping = active && (
+          active.matches('input, textarea, select') || active.isContentEditable
+        );
+        const isControl = active && active.matches('button, a, [role="menuitem"]');
+        if (isTyping || isControl) return;
+
+        if (e.code === 'Space') {
+          e.preventDefault();
+          toggleStartPause();
+        } else if (e.key === 'r' || e.key === 'R') {
+          e.preventDefault();
+          if (state.mode !== 'clock') resetCurrentMode();
+        } else if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          toggleFullscreen();
+        }
+      });
+
+      window.addEventListener('click', (e) => {
+        const menu = document.getElementById('theme-menu');
+        const btn = document.getElementById('theme-btn');
+        if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+          menu.classList.add('hidden');
+          btn.setAttribute('aria-expanded', 'false');
+        }
+        const ambientMenu = document.getElementById('ambient-menu');
+        const ambientButton = document.getElementById('ambient-btn');
+        if (ambientMenu && ambientButton && !ambientMenu.contains(e.target) && !ambientButton.contains(e.target)) {
+          ambientMenu.classList.add('hidden');
+          ambientButton.setAttribute('aria-expanded', 'false');
+        }
+        const customPanel = document.getElementById('custom-duration-panel');
+        const customTrigger = document.getElementById('custom-duration-trigger');
+        if (customPanel && customTrigger && !customPanel.contains(e.target) && !customTrigger.contains(e.target)) {
+          toggleCustomDurationPanel(false);
+        }
+      });
+    }
+
+    function loadFromStorage() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aether_study_state_v2')) ||
+                      JSON.parse(localStorage.getItem('aether_study_state_v1'));
+        const today = getLocalDateKey(new Date());
+        if (saved) {
+          state.scholarName = saved.scholarName || 'Scholar';
+          state.currentSubject = saved.currentSubject || 'Astrophysics';
+          state.soundEnabled = saved.soundEnabled !== undefined ? saved.soundEnabled : true;
+          state.ambientType = ['off', 'rain', 'cafe', 'whitenoise'].includes(saved.ambientType) ? saved.ambientType : 'off';
+          state.ambientVolume = Number.isFinite(saved.ambientVolume) ? Math.min(0.35, Math.max(0.03, saved.ambientVolume)) : 0.14;
+          state.theme = saved.theme || 'cosmos';
+          state.themeName = ({ cosmos: 'Dark', slate: 'Forest', warm: 'Warm', minimal: 'Monochrome' })[state.theme] || 'Dark';
+
+          state.streakCount = saved.streakCount || 0;
+          state.lastStudyDateKey = saved.lastStudyDateKey || null;
+          state.lastSubject = saved.lastSubject || null;
+          state.lastStudyTimestamp = saved.lastStudyTimestamp || null;
+          state.lastStudyDurationSec = saved.lastStudyDurationSec || 0;
+          state.savedRecords = Array.isArray(saved.savedRecords) ? saved.savedRecords : [];
+
+          if (saved.customSubjects && Array.isArray(saved.customSubjects)) {
+            state.customSubjects = saved.customSubjects;
+          }
+          if (saved.todayKey === today && saved.subjectSecondsToday) {
+            state.subjectSecondsToday = saved.subjectSecondsToday;
+          }
+        }
+        setTheme(state.theme, state.themeName || 'Dark', false);
+        updateSoundIcon();
+        updateAmbientUI();
+      } catch (err) {
+        console.warn('Could not load state from localStorage:', err);
+      }
+    }
+
+    function saveToStorage() {
+      try {
+        const payload = {
+          scholarName: state.scholarName,
+          currentSubject: state.currentSubject,
+          soundEnabled: state.soundEnabled,
+          ambientType: state.ambientType,
+          ambientVolume: state.ambientVolume,
+          theme: state.theme,
+          themeName: state.themeName,
+          customSubjects: state.customSubjects,
+          streakCount: state.streakCount,
+          lastStudyDateKey: state.lastStudyDateKey,
+          lastSubject: state.lastSubject,
+          lastStudyTimestamp: state.lastStudyTimestamp,
+          lastStudyDurationSec: state.lastStudyDurationSec,
+          savedRecords: state.savedRecords,
+          todayKey: state.todayKey,
+          subjectSecondsToday: state.subjectSecondsToday
+        };
+        localStorage.setItem('aether_study_state_v2', JSON.stringify(payload));
+      } catch (err) {
+        console.warn('Could not save state:', err);
+      }
+    }
+
+    /***************************************************************************
+     * SCHOLAR PROFILE, STREAK & RECORDS SYSTEM
+     ***************************************************************************/
+    function verifyStreakIntegrity() {
+      const today = getLocalDateKey(new Date());
+      const yesterday = getYesterdayDateKey();
+      if (state.lastStudyDateKey && state.lastStudyDateKey !== today && state.lastStudyDateKey !== yesterday) {
+        state.streakCount = 0;
+        saveToStorage();
+      }
+    }
+
+    function registerStudyStreakForToday() {
+      const today = getLocalDateKey(new Date());
+      const yesterday = getYesterdayDateKey();
+
+      if (state.lastStudyDateKey === today) {
+        if (state.streakCount === 0) state.streakCount = 1;
+      } else if (state.lastStudyDateKey === yesterday) {
+        state.streakCount += 1;
+        state.lastStudyDateKey = today;
+      } else {
+        state.streakCount = 1;
+        state.lastStudyDateKey = today;
+      }
+    }
+
+    function handleNameInput(val) {
+      state.scholarName = val.trim() || 'Scholar';
+      updateScholarHUD(false);
+      saveToStorage();
+    }
+
+    function recordStudySession(durationSec, sourceLabel = 'Session') {
+      const cleanDuration = Math.max(1, Math.round(durationSec));
+      const nowIso = new Date().toISOString();
+      const subj = state.currentSubject.trim() || 'General Study';
+      const scholar = state.scholarName.trim() || 'Scholar';
+
+      registerStudyStreakForToday();
+
+      state.lastSubject = subj;
+      state.lastStudyTimestamp = nowIso;
+      state.lastStudyDurationSec = cleanDuration;
+
+      const newRecord = {
+        id: 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name: scholar,
+        subject: subj,
+        durationSec: cleanDuration,
+        streak: state.streakCount,
+        timestamp: nowIso,
+        mode: sourceLabel
+      };
+
+      state.savedRecords.unshift(newRecord);
+      if (state.savedRecords.length > 100) {
+        state.savedRecords.pop();
+      }
+
+      state.currentSessionFocusedSec = 0;
+      saveToStorage();
+      updateScholarHUD();
+      renderSavedRecordsList();
+    }
+
+    function manualSaveCurrentRecord() {
+      playChime('click');
+      const durationToLog = Math.round(state.currentSessionFocusedSec || 0);
+      const subj = state.currentSubject.trim() || 'General Study';
+
+      if (durationToLog < 5) {
+        showNotificationBanner(
+          'No Study Time to Save',
+          'Start a focus session and study for at least five seconds first.'
+        );
+        return;
+      }
+
+      recordStudySession(durationToLog, state.mode.toUpperCase());
+      showNotificationBanner(
+        `Saved for ${state.scholarName}`,
+        `${subj} · ${formatDurationShort(durationToLog)} · Streak: ${state.streakCount}d`
+      );
+    }
+
+    function formatRelativeStudyTime(isoString, durationSec) {
+      if (!isoString) return 'No record yet';
+      const date = new Date(isoString);
+      const todayKey = getLocalDateKey(new Date());
+      const yesterdayKey = getYesterdayDateKey();
+      const recordKey = getLocalDateKey(date);
+
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      let dayPrefix = '';
+      if (recordKey === todayKey) {
+        dayPrefix = 'Today';
+      } else if (recordKey === yesterdayKey) {
+        dayPrefix = 'Yesterday';
+      } else {
+        dayPrefix = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      }
+
+      const durStr = durationSec ? ` · ${formatDurationShort(durationSec)}` : '';
+      return `${dayPrefix}, ${timeStr}${durStr}`;
+    }
+
+    function updateScholarHUD(updateInputVal = true) {
+      const nameInput = document.getElementById('scholar-name-input');
+      if (updateInputVal && nameInput && document.activeElement !== nameInput) {
+        nameInput.value = state.scholarName;
+      }
+
+      const streakCountEl = document.getElementById('hud-streak-count');
+      const streakStatusEl = document.getElementById('hud-streak-status');
+      const lastSubjEl = document.getElementById('hud-last-subject');
+      const lastStudyEl = document.getElementById('hud-last-study');
+      const badgeEl = document.getElementById('records-count-badge');
+
+      const daysWord = state.streakCount === 1 ? 'Day' : 'Days';
+      streakCountEl.textContent = `${state.streakCount} ${daysWord}`;
+
+      const today = getLocalDateKey(new Date());
+      if (state.lastStudyDateKey === today) {
+        streakStatusEl.textContent = 'Active today';
+        streakStatusEl.className = 'text-[11px] text-emerald-400 truncate';
+      } else if (state.streakCount > 0) {
+        streakStatusEl.textContent = 'Study to keep';
+        streakStatusEl.className = 'text-[11px] text-amber-400 truncate';
+      } else {
+        streakStatusEl.textContent = 'Start today';
+        streakStatusEl.className = 'text-[11px] text-zinc-500 truncate';
+      }
+
+      lastSubjEl.textContent = state.lastSubject || '—';
+      lastSubjEl.title = state.lastSubject ? `Last studied: ${state.lastSubject}` : 'No subject recorded yet';
+
+      const formattedLast = formatRelativeStudyTime(state.lastStudyTimestamp, state.lastStudyDurationSec);
+      lastStudyEl.textContent = formattedLast;
+      lastStudyEl.title = formattedLast;
+
+      if (badgeEl) {
+        badgeEl.textContent = state.savedRecords.length;
+      }
+
+      const mName = document.getElementById('modal-stat-name');
+      const mStreak = document.getElementById('modal-stat-streak');
+      const mSubj = document.getElementById('modal-stat-subject');
+      const mLast = document.getElementById('modal-stat-last');
+      if (mName) mName.textContent = state.scholarName;
+      if (mStreak) mStreak.textContent = `${state.streakCount} ${daysWord}`;
+      if (mSubj) mSubj.textContent = state.lastSubject || '—';
+      if (mLast) mLast.textContent = formattedLast;
+    }
+
+    /***************************************************************************
+     * STUDY RECORDS ARCHIVE
+     ***************************************************************************/
+    function toggleRecordsModal(show) {
+      const modal = document.getElementById('records-modal');
+      if (!modal) return;
+
+      if (show) {
+        if (modal.classList.contains('hidden')) {
+          lastModalTrigger = document.activeElement;
+        }
+        updateScholarHUD();
+        renderSavedRecordsList();
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          modal.querySelector('[data-modal-close]')?.focus();
+        });
+      } else {
+        const wasOpen = !modal.classList.contains('hidden');
+        modal.classList.add('hidden');
+        if (wasOpen && lastModalTrigger && typeof lastModalTrigger.focus === 'function') {
+          lastModalTrigger.focus();
+        }
+      }
+    }
+
+    function renderSavedRecordsList() {
+      const container = document.getElementById('saved-records-list');
+      if (!container) return;
+
+      if (state.savedRecords.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 px-4 border border-dashed border-white/10 rounded-xl">
+            <p class="text-sm text-zinc-300 font-medium">No saved study records yet</p>
+            <p class="text-xs text-zinc-500 mt-1">Complete a timer session or click "Save" to log your progress.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.savedRecords.map(rec => {
+        const timeFormatted = formatRelativeStudyTime(rec.timestamp, 0);
+        const durFormatted = formatDurationShort(rec.durationSec);
+        return `
+          <div class="bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.07] rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 transition-colors">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="px-2.5 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-xs accent-text font-semibold tabular-nums shrink-0">
+                ${durFormatted}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-white truncate">${escapeHtml(rec.subject)}</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-zinc-400">${escapeHtml(rec.name)}</span>
+                </div>
+                <div class="text-xs text-zinc-400 mt-0.5 flex items-center gap-2 tabular-nums">
+                  <span>${timeFormatted}</span>
+                  <span>·</span>
+                  <span class="text-amber-400">Streak: ${rec.streak || 1}d</span>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="deleteSavedRecord('${rec.id}')" title="Delete record" aria-label="Delete record"
+              class="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-white/5 transition-colors">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function deleteSavedRecord(id) {
+      state.savedRecords = state.savedRecords.filter(r => r.id !== id);
+      if (state.savedRecords.length > 0) {
+        const latest = state.savedRecords[0];
+        state.lastSubject = latest.subject;
+        state.lastStudyTimestamp = latest.timestamp;
+        state.lastStudyDurationSec = latest.durationSec;
+      }
+      saveToStorage();
+      updateScholarHUD();
+      renderSavedRecordsList();
+    }
+
+    function clearAllSavedRecords() {
+      state.savedRecords = [];
+      state.lastSubject = null;
+      state.lastStudyTimestamp = null;
+      state.lastStudyDurationSec = 0;
+      saveToStorage();
+      updateScholarHUD();
+      renderSavedRecordsList();
+    }
+
+    function copyRecordsSummary() {
+      const summaryLines = [
+        `AETHER SCHOLAR RECORD — ${state.scholarName}`,
+        `Current Streak: ${state.streakCount} Days`,
+        `Last Subject: ${state.lastSubject || 'N/A'}`,
+        `Last Study: ${formatRelativeStudyTime(state.lastStudyTimestamp, state.lastStudyDurationSec)}`,
+        `--- Recent Sessions ---`,
+        ...state.savedRecords.slice(0, 10).map(r =>
+          `• ${r.subject} (${formatDurationShort(r.durationSec)}) — ${formatRelativeStudyTime(r.timestamp, 0)} [Streak: ${r.streak}d]`
+        )
+      ];
+      const textArea = document.createElement('textarea');
+      textArea.value = summaryLines.join('\n');
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        const btnText = document.getElementById('copy-records-btn-text');
+        if (btnText) {
+          btnText.textContent = 'Copied!';
+          setTimeout(() => { btnText.textContent = 'Copy Summary'; }, 2000);
+        }
+      } catch (e) {}
+      document.body.removeChild(textArea);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, s => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[s]));
+    }
+
+    /***************************************************************************
+     * APPLE-INSPIRED WEB AUDIO: UI CHIMES & AMBIENT SOUNDSCAPES
+     ***************************************************************************/
+    let audioCtx = null;
+    let ambientNodes = null;
+
+    function getAudioContext() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) throw new Error('Web Audio API is not supported in this browser.');
+      if (!audioCtx) audioCtx = new AudioContextClass();
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      return audioCtx;
+    }
+
+    function scheduleTone(ctx, frequency, startTime, duration, peak, wave = 'sine') {
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = wave;
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.linearRampToValueAtTime(peak, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + 0.03);
+    }
+
+    function playChime(type = 'click') {
+      if (!state.soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        if (type === 'start') {
+          // Quiet rising confirmation.
+          scheduleTone(ctx, 698.46, now, 0.22, 0.035);
+          scheduleTone(ctx, 1046.50, now + 0.065, 0.30, 0.042);
+        } else if (type === 'pause') {
+          // Short, gentle descending interval.
+          scheduleTone(ctx, 880.00, now, 0.12, 0.032);
+          scheduleTone(ctx, 659.25, now + 0.05, 0.18, 0.026);
+        } else if (type === 'complete') {
+          // Warm, restrained C-major ninth arpeggio.
+          [523.25, 659.25, 783.99, 987.77, 1174.66].forEach((frequency, index) => {
+            const startTime = now + index * 0.095;
+            scheduleTone(ctx, frequency, startTime, 1.8, 0.065 / (1 + index * 0.2));
+          });
+        } else if (type === 'click') {
+          const oscillator = ctx.createOscillator();
+          const filter = ctx.createBiquadFilter();
+          const gain = ctx.createGain();
+          oscillator.type = 'triangle';
+          oscillator.frequency.setValueAtTime(240, now);
+          oscillator.frequency.exponentialRampToValueAtTime(65, now + 0.018);
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(900, now);
+          gain.gain.setValueAtTime(0.022, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.018);
+          oscillator.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          oscillator.start(now);
+          oscillator.stop(now + 0.025);
+        }
+      } catch (error) {
+        // Browsers may block audio until the first user interaction.
+      }
+    }
+
+    function createNoiseBuffer(ctx, durationSec = 5, pink = false) {
+      const sampleRate = ctx.sampleRate;
+      const bufferSize = Math.max(1, Math.floor(sampleRate * durationSec));
+      const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+      const output = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        if (pink) {
+          // Paul Kellet-style pink-noise approximation for a softer texture.
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.035;
+          b6 = white * 0.115926;
+        } else {
+          output[i] = white * 0.18;
+        }
+      }
+      return buffer;
+    }
+
+    function addAmbientNoiseLayer(ctx, active, options = {}) {
+      const source = ctx.createBufferSource();
+      const filter = ctx.createBiquadFilter();
+      const layerGain = ctx.createGain();
+      source.buffer = createNoiseBuffer(ctx, options.duration || 5, Boolean(options.pink));
+      source.loop = true;
+      filter.type = options.filterType || 'lowpass';
+      filter.frequency.setValueAtTime(options.frequency || 1000, ctx.currentTime);
+      if (options.q) filter.Q.setValueAtTime(options.q, ctx.currentTime);
+      layerGain.gain.setValueAtTime(options.gain ?? 0.65, ctx.currentTime);
+      source.connect(filter);
+      filter.connect(layerGain);
+      layerGain.connect(active.masterGain);
+      source.start();
+      active.sources.push(source);
+      return { source, filter, layerGain };
+    }
+
+    function startAmbientSound() {
+      stopAmbientSound();
+      if (!state.soundEnabled || state.ambientType === 'off' || !state.isRunning) return;
+
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const active = {
+          masterGain: ctx.createGain(),
+          sources: [],
+          murmurInterval: null
+        };
+        active.masterGain.gain.setValueAtTime(0.0001, now);
+        active.masterGain.gain.linearRampToValueAtTime(state.ambientVolume, now + 0.9);
+        active.masterGain.connect(ctx.destination);
+        ambientNodes = active;
+
+        if (state.ambientType === 'whitenoise') {
+          // Soft white noise, gently filtered to avoid harsh high frequencies.
+          addAmbientNoiseLayer(ctx, active, {
+            pink: false, filterType: 'lowpass', frequency: 1050, gain: 0.72
+          });
+        } else if (state.ambientType === 'rain') {
+          // Layered low rainfall with a quiet high-frequency patter.
+          addAmbientNoiseLayer(ctx, active, {
+            pink: true, filterType: 'lowpass', frequency: 1450, gain: 0.78
+          });
+          addAmbientNoiseLayer(ctx, active, {
+            pink: false, filterType: 'highpass', frequency: 2500, gain: 0.12
+          });
+        } else if (state.ambientType === 'cafe') {
+          // Low, warm room tone with occasional distant, soft murmur swells.
+          addAmbientNoiseLayer(ctx, active, {
+            pink: true, filterType: 'bandpass', frequency: 430, q: 0.85, gain: 0.62
+          });
+
+          active.murmurInterval = setInterval(() => {
+            if (ambientNodes !== active || !state.isRunning || state.ambientType !== 'cafe' || !state.soundEnabled) return;
+            const t = ctx.currentTime;
+            const source = ctx.createBufferSource();
+            const formant = ctx.createBiquadFilter();
+            const swellGain = ctx.createGain();
+            source.buffer = createNoiseBuffer(ctx, 1.3, true);
+            formant.type = 'bandpass';
+            formant.frequency.setValueAtTime(280 + Math.random() * 520, t);
+            formant.Q.setValueAtTime(2.2, t);
+            swellGain.gain.setValueAtTime(0.0001, t);
+            swellGain.gain.linearRampToValueAtTime(0.035, t + 0.35);
+            swellGain.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+            source.connect(formant);
+            formant.connect(swellGain);
+            swellGain.connect(active.masterGain);
+            source.onended = () => {
+              try { source.disconnect(); formant.disconnect(); swellGain.disconnect(); } catch (error) {}
+            };
+            source.start(t);
+            source.stop(t + 1.25);
+          }, 1200);
+        }
+      } catch (error) {
+        stopAmbientSound();
+      }
+    }
+
+    function stopAmbientSound() {
+      const active = ambientNodes;
+      if (!active) return;
+      ambientNodes = null;
+      if (active.murmurInterval) clearInterval(active.murmurInterval);
+
+      if (!audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        active.masterGain.gain.cancelScheduledValues(now);
+        active.masterGain.gain.setValueAtTime(Math.max(0.0001, active.masterGain.gain.value), now);
+        active.masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.22);
+        window.setTimeout(() => {
+          active.sources.forEach(source => {
+            try { source.stop(); } catch (error) {}
+            try { source.disconnect(); } catch (error) {}
+          });
+          try { active.masterGain.disconnect(); } catch (error) {}
+        }, 260);
+      } catch (error) {
+        active.sources.forEach(source => {
+          try { source.stop(); source.disconnect(); } catch (ignored) {}
+        });
+        try { active.masterGain.disconnect(); } catch (ignored) {}
+      }
+    }
+
+    function toggleAmbientMenu() {
+      const menu = document.getElementById('ambient-menu');
+      const button = document.getElementById('ambient-btn');
+      if (!menu || !button) return;
+      const willOpen = menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', !willOpen);
+      button.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) menu.querySelector('[role="menuitem"]')?.focus();
+    }
+
+    function updateAmbientUI() {
+      const label = document.getElementById('current-ambient-name');
+      const icon = document.getElementById('ambient-icon');
+      const button = document.getElementById('ambient-btn');
+      const labels = { off: 'Off', rain: 'Rain', cafe: 'Café', whitenoise: 'White Noise' };
+      const icons = { off: 'cloud-rain', rain: 'cloud-rain', cafe: 'coffee', whitenoise: 'wind' };
+      const selected = labels[state.ambientType] ? state.ambientType : 'off';
+      if (label) label.textContent = labels[selected];
+      if (icon) {
+        icon.setAttribute('data-lucide', icons[selected]);
+        icon.className = selected === 'off' ? 'w-3.5 h-3.5 text-zinc-400' : 'w-3.5 h-3.5 accent-text';
+      }
+      if (button) button.setAttribute('aria-pressed', String(selected !== 'off'));
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function setAmbientSound(type, labelName) {
+      const allowedTypes = ['off', 'rain', 'cafe', 'whitenoise'];
+      if (!allowedTypes.includes(type)) return;
+      playChime('click');
+      state.ambientType = type;
+      updateAmbientUI();
+      const menu = document.getElementById('ambient-menu');
+      const button = document.getElementById('ambient-btn');
+      if (menu) menu.classList.add('hidden');
+      if (button) button.setAttribute('aria-expanded', 'false');
+      if (state.isRunning && state.soundEnabled && type !== 'off') {
+        startAmbientSound();
+      } else {
+        stopAmbientSound();
+      }
+      saveToStorage();
+    }
+
+    /***************************************************************************
+     * MODE SWITCHING & TIMER ENGINE
+     ***************************************************************************/
+    function switchMode(newMode) {
+      if (state.mode === newMode) return;
+      pauseEngine();
+      state.mode = newMode;
+
+      ['timer', 'stopwatch', 'clock'].forEach(m => {
+        const btn = document.getElementById(`mode-btn-${m}`);
+        if (btn) {
+          btn.classList.toggle('is-active', m === newMode);
+          btn.setAttribute('aria-pressed', String(m === newMode));
+        }
+      });
+
+      const presetsEl = document.getElementById('timer-presets');
+      const controlsEl = document.getElementById('timer-controls');
+
+      if (newMode === 'timer') {
+        presetsEl.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mb-0', 'overflow-hidden');
+        presetsEl.classList.add('mb-4');
+        controlsEl.classList.remove('hidden');
+      } else {
+        presetsEl.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mb-0', 'overflow-hidden');
+        presetsEl.classList.remove('mb-4');
+        controlsEl.classList.remove('hidden');
+      }
+
+      updateControlButtonsUI();
+      updateDisplay();
+    }
+
+    function toggleStartPause() {
+      if (state.isRunning) {
+        playChime('pause');
+        pauseEngine();
+      } else {
+        playChime('start');
+        startEngine();
+        startAmbientSound();
+      }
+    }
+
+    function handleDisplayClick() {
+      toggleStartPause();
+    }
+
+    function startEngine() {
+      if (state.isRunning) return;
+
+      if (state.mode === 'timer' && state.timerRemainingSec <= 0) {
+        state.timerRemainingSec = state.timerDurationSec;
+      }
+
+      state.isRunning = true;
+      lastTickTimestamp = Date.now();
+      updateControlButtonsUI();
+
+      intervalId = setInterval(() => {
+        const now = Date.now();
+        const deltaSec = Math.floor((now - lastTickTimestamp) / 1000);
+
+        if (deltaSec >= 1) {
+          lastTickTimestamp += deltaSec * 1000;
+
+          state.currentSessionFocusedSec += deltaSec;
+          incrementSubjectStudyTime(deltaSec);
+
+          if (state.mode === 'timer') {
+            state.timerRemainingSec = Math.max(0, state.timerRemainingSec - deltaSec);
+            if (state.timerRemainingSec === 0) {
+              handleTimerComplete();
+            }
+          } else if (state.mode === 'stopwatch') {
+            state.stopwatchElapsedSec += deltaSec;
+          }
+
+          updateDisplay();
+        }
+      }, 200);
+    }
+
+    function pauseEngine() {
+      state.isRunning = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      stopAmbientSound();
+      updateControlButtonsUI();
+      updateDisplay();
+    }
+
+    function resetCurrentMode() {
+      playChime('click');
+      pauseEngine();
+
+      const actualFocusedSec = Math.round(state.currentSessionFocusedSec || 0);
+      if (actualFocusedSec >= 5) {
+        recordStudySession(actualFocusedSec, state.mode.toUpperCase());
+      } else {
+        state.currentSessionFocusedSec = 0;
+      }
+
+      if (state.mode === 'timer') {
+        state.timerRemainingSec = state.timerDurationSec;
+      } else if (state.mode === 'stopwatch') {
+        state.stopwatchElapsedSec = 0;
+      }
+      updateDisplay();
+    }
+
+    function handleTimerComplete() {
+      pauseEngine();
+      playChime('complete');
+      const actualFocusedSec = Math.round(state.currentSessionFocusedSec || 0);
+      if (actualFocusedSec >= 5) {
+        recordStudySession(actualFocusedSec, 'TIMER');
+      }
+      showCompletionBanner();
+      updateDisplay();
+    }
+
+    function setTimerMinutes(mins) {
+      const safeMinutes = Math.min(480, Math.max(1, Math.round(Number(mins) || 25)));
+      playChime('click');
+      pauseEngine();
+      state.timerDurationSec = safeMinutes * 60;
+      state.timerRemainingSec = safeMinutes * 60;
+
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        const isSelected = Number(btn.getAttribute('data-mins')) === safeMinutes;
+        btn.classList.toggle('is-selected', isSelected);
+        btn.setAttribute('aria-pressed', String(isSelected));
+      });
+
+      const customTrigger = document.getElementById('custom-duration-trigger');
+      const isPreset = [25, 45, 60, 90].includes(safeMinutes);
+      if (customTrigger) {
+        customTrigger.classList.toggle('is-selected', !isPreset);
+        customTrigger.setAttribute('aria-pressed', String(!isPreset));
+      }
+
+      const slider = document.getElementById('custom-duration-slider');
+      if (slider) {
+        slider.value = String(Math.min(480, Math.max(5, Math.round(safeMinutes / 5) * 5)));
+        updateCustomDurationPreview(slider.value);
+      }
+      updateDisplay();
+    }
+
+    function toggleCustomDurationPanel(forceOpen) {
+      const panel = document.getElementById('custom-duration-panel');
+      const trigger = document.getElementById('custom-duration-trigger');
+      if (!panel || !trigger) return;
+
+      const shouldOpen = typeof forceOpen === 'boolean'
+        ? forceOpen
+        : !panel.classList.contains('is-open');
+
+      panel.classList.toggle('is-open', shouldOpen);
+      trigger.setAttribute('aria-expanded', String(shouldOpen));
+
+      if (shouldOpen) {
+        const slider = document.getElementById('custom-duration-slider');
+        const currentMinutes = Math.max(5, Math.round(state.timerDurationSec / 300) * 5);
+        slider.value = String(Math.min(480, currentMinutes));
+        updateCustomDurationPreview(slider.value);
+      }
+    }
+
+    function updateCustomDurationPreview(rawMinutes) {
+      const minutes = Math.min(480, Math.max(5, Math.round(Number(rawMinutes) / 5) * 5));
+      const valueEl = document.getElementById('custom-duration-value');
+      if (!valueEl) return;
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      let label;
+      if (hours === 0) label = `${minutes} min`;
+      else if (remainingMinutes === 0) label = `${hours} hr`;
+      else label = `${hours} hr ${remainingMinutes} min`;
+      valueEl.textContent = label;
+    }
+
+    function applyCustomDuration() {
+      const slider = document.getElementById('custom-duration-slider');
+      if (!slider) return;
+      const minutes = Math.min(480, Math.max(5, Number(slider.value) || 45));
+      if (state.mode !== 'timer') switchMode('timer');
+      setTimerMinutes(minutes);
+      toggleCustomDurationPanel(false);
+    }
+
+    /***************************************************************************
+     * UI DISPLAY & RING RENDERING
+     ***************************************************************************/
+    function formatMMSS(totalSeconds) {
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+      if (hrs > 0) {
+        return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function updateDisplay() {
+      const timeEl = document.getElementById('time-display');
+      const topSubEl = document.getElementById('clock-sub-top');
+      const bottomSubEl = document.getElementById('clock-sub-bottom');
+      const ringEl = document.getElementById('progress-ring');
+      const statusDot = document.getElementById('status-dot');
+      const statusLabel = document.getElementById('status-label');
+
+      if (state.isRunning) {
+        statusDot.style.backgroundColor = 'var(--accent)';
+        statusLabel.textContent = `${state.scholarName} · ${state.currentSubject}`;
+        statusLabel.className = "text-xs accent-text font-medium truncate";
+      } else {
+        statusDot.style.backgroundColor = '#71717a';
+        statusLabel.textContent = `${state.scholarName} · Ready`;
+        statusLabel.className = "text-xs text-zinc-400 truncate";
+      }
+
+      if (state.mode === 'timer') {
+        const formatted = formatMMSS(state.timerRemainingSec);
+        timeEl.textContent = formatted;
+        timeEl.setAttribute('aria-label', `${formatted}. ${state.isRunning ? 'Pause' : 'Start'} focus timer.`);
+        const totalMins = Math.round(state.timerDurationSec / 60);
+        topSubEl.textContent = `Focus session · ${totalMins} min`;
+        bottomSubEl.textContent = state.isRunning ? `Studying ${state.currentSubject}` : 'Ready when you are';
+
+        timeEl.className = state.timerRemainingSec >= 3600
+          ? "tabular-nums-display text-5xl sm:text-6xl text-white cursor-pointer select-none"
+          : "tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] text-white cursor-pointer select-none";
+
+        const fraction = state.timerDurationSec > 0
+          ? state.timerRemainingSec / state.timerDurationSec
+          : 0;
+        const offset = RING_CIRCUMFERENCE * (1 - fraction);
+        ringEl.style.strokeDashoffset = offset;
+        document.title = state.isRunning ? `(${formatted}) ${state.currentSubject} — Aether` : 'Aether — Focus Timer';
+
+      } else if (state.mode === 'stopwatch') {
+        const formatted = formatMMSS(state.stopwatchElapsedSec);
+        timeEl.textContent = formatted;
+        timeEl.setAttribute('aria-label', `${formatted}. ${state.isRunning ? 'Pause' : 'Start'} stopwatch.`);
+        topSubEl.textContent = 'Stopwatch';
+        bottomSubEl.textContent = state.isRunning ? `Studying ${state.currentSubject}` : 'Paused';
+
+        timeEl.className = state.stopwatchElapsedSec >= 3600
+          ? "tabular-nums-display text-5xl sm:text-6xl text-white cursor-pointer select-none"
+          : "tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] text-white cursor-pointer select-none";
+
+        const secInMin = (state.stopwatchElapsedSec % 60) / 60;
+        const offset = RING_CIRCUMFERENCE * (1 - secInMin);
+        ringEl.style.strokeDashoffset = offset;
+        document.title = state.isRunning ? `(${formatted}) ${state.currentSubject} — Aether` : 'Aether — Focus Timer';
+
+      } else if (state.mode === 'clock') {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const secs = String(now.getSeconds()).padStart(2, '0');
+
+        timeEl.textContent = `${hours}:${mins}`;
+        timeEl.setAttribute('aria-label', `Current time ${hours}:${mins}. ${state.isRunning ? 'Pause' : 'Start'} time tracking.`);
+        timeEl.className = "tabular-nums-display text-6xl sm:text-7xl md:text-[5.25rem] text-white cursor-pointer select-none";
+
+        const dateStr = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        topSubEl.textContent = `${dateStr} · :${secs}`;
+        bottomSubEl.textContent = state.isRunning ? `Tracking ${state.currentSubject}` : 'Local time';
+
+        const fraction = now.getSeconds() / 60;
+        const offset = RING_CIRCUMFERENCE * (1 - fraction);
+        ringEl.style.strokeDashoffset = offset;
+        document.title = `${hours}:${mins} · ${state.currentSubject} — Aether`;
+      }
+    }
+
+    function updateControlButtonsUI() {
+      const btnText = document.getElementById('start-pause-text');
+      const playIcon = document.getElementById('play-icon');
+      const resetBtn = document.getElementById('reset-btn');
+      const startPauseBtn = document.getElementById('start-pause-btn');
+
+      if (state.mode === 'clock') {
+        resetBtn.classList.add('hidden');
+        btnText.textContent = state.isRunning ? 'Pause Log' : 'Log Session';
+      } else {
+        resetBtn.classList.remove('hidden');
+        btnText.textContent = state.isRunning ? 'Pause' : 'Start';
+      }
+
+      playIcon.setAttribute('data-lucide', state.isRunning ? 'pause' : 'play');
+      startPauseBtn.setAttribute('aria-pressed', String(state.isRunning));
+      startPauseBtn.setAttribute('aria-label', state.isRunning ? 'Pause current session' : (state.mode === 'clock' ? 'Start time tracking' : 'Start focus session'));
+      lucide.createIcons();
+    }
+
+    /***************************************************************************
+     * SUBJECT INPUT & QUICK PILLS LOGIC
+     ***************************************************************************/
+    function handleSubjectInput(val) {
+      const cleaned = val.trim();
+      state.currentSubject = cleaned || 'General Study';
+      renderSubjectPills();
+      updateSubjectTodayBadge();
+      if (state.isRunning) {
+        updateDisplay();
+      }
+      saveToStorage();
+    }
+
+    function selectSubjectPill(subjectName) {
+      playChime('click');
+      state.currentSubject = subjectName;
+      const inputEl = document.getElementById('subject-input');
+      inputEl.value = subjectName;
+      renderSubjectPills();
+      updateSubjectTodayBadge();
+      updateDisplay();
+      saveToStorage();
+    }
+
+    function addCurrentSubjectToPills() {
+      const subj = state.currentSubject.trim();
+      if (!subj) return;
+      if (!state.customSubjects.includes(subj)) {
+        state.customSubjects.unshift(subj);
+        if (state.customSubjects.length > 7) {
+          state.customSubjects.pop();
+        }
+        saveToStorage();
+        renderSubjectPills();
+      }
+    }
+
+    function renderSubjectPills() {
+      const container = document.getElementById('subject-pills-container');
+      container.innerHTML = '';
+
+      state.customSubjects.forEach(subj => {
+        const isSelected = subj.toLowerCase() === state.currentSubject.toLowerCase();
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => selectSubjectPill(subj);
+        btn.className = isSelected
+          ? "px-3 py-1 rounded-lg text-xs font-medium bg-[var(--accent-soft)] text-white border border-white/20"
+          : "px-3 py-1 rounded-lg text-xs text-zinc-400 hover:text-white bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.07]";
+        btn.setAttribute("aria-pressed", String(isSelected));
+        btn.textContent = subj;
+        container.appendChild(btn);
+      });
+
+      const exists = state.customSubjects.some(s => s.toLowerCase() === state.currentSubject.trim().toLowerCase());
+      if (!exists && state.currentSubject.trim().length > 1) {
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.onclick = addCurrentSubjectToPills;
+        saveBtn.className = "px-2.5 py-1 rounded-lg text-xs font-medium accent-text bg-white/[0.03] border border-white/10 hover:border-white/25 flex items-center gap-1";
+        saveBtn.innerHTML = `<span>+ Pin "${escapeHtml(state.currentSubject.trim())}"</span>`;
+        container.appendChild(saveBtn);
+      }
+    }
+
+    function updateSubjectInputUI() {
+      const inputEl = document.getElementById('subject-input');
+      inputEl.value = state.currentSubject;
+      updateSubjectTodayBadge();
+    }
+
+    /***************************************************************************
+     * DAILY STUDY STATS & FOOTER LOG
+     ***************************************************************************/
+    function incrementSubjectStudyTime(seconds) {
+      const currentDayKey = getLocalDateKey(new Date());
+      if (state.todayKey !== currentDayKey) {
+        state.todayKey = currentDayKey;
+        state.subjectSecondsToday = {};
+      }
+
+      const subj = state.currentSubject.trim() || 'General Study';
+      if (!state.subjectSecondsToday[subj]) {
+        state.subjectSecondsToday[subj] = 0;
+      }
+      state.subjectSecondsToday[subj] += seconds;
+
+      registerStudyStreakForToday();
+      state.lastSubject = subj;
+      state.lastStudyTimestamp = new Date().toISOString();
+      state.lastStudyDurationSec = state.subjectSecondsToday[subj];
+
+      updateSubjectTodayBadge();
+      updateScholarHUD(false);
+      updateStatsFooter();
+      saveToStorage();
+    }
+
+    function formatDurationShort(totalSeconds) {
+      if (!totalSeconds || totalSeconds < 60) {
+        return totalSeconds ? `${totalSeconds}s` : '0m';
+      }
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      if (hrs > 0) {
+        return `${hrs}h ${mins}m`;
+      }
+      return `${mins}m`;
+    }
+
+    function updateSubjectTodayBadge() {
+      const badge = document.getElementById('subject-today-badge');
+      const subj = state.currentSubject.trim() || 'General Study';
+      const secs = state.subjectSecondsToday[subj] || 0;
+      badge.textContent = `${formatDurationShort(secs)} today`;
+    }
+
+    function updateStatsFooter() {
+      const totalEl = document.getElementById('total-today-display');
+      const listEl = document.getElementById('subject-breakdown-list');
+
+      const entries = Object.entries(state.subjectSecondsToday).filter(([_, s]) => s > 0);
+      const totalSeconds = entries.reduce((acc, [_, s]) => acc + s, 0);
+
+      totalEl.textContent = formatDurationShort(totalSeconds);
+
+      if (entries.length === 0) {
+        listEl.innerHTML = `<span class="text-zinc-500 text-xs">No sessions logged today</span>`;
+        return;
+      }
+
+      entries.sort((a, b) => b[1] - a[1]);
+
+      listEl.innerHTML = entries.map(([subject, secs]) => `
+        <button onclick="selectSubjectPill('${subject.replace(/'/g, "\\'")}')"
+          class="px-2.5 py-0.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] text-xs flex items-center gap-1.5 tabular-nums">
+          <span class="text-zinc-200 font-medium">${escapeHtml(subject)}</span>
+          <span class="text-zinc-400">${formatDurationShort(secs)}</span>
+        </button>
+      `).join('');
+    }
+
+    function resetTodayStats() {
+      state.todayKey = getLocalDateKey(new Date());
+      state.subjectSecondsToday = {};
+      updateSubjectTodayBadge();
+      updateStatsFooter();
+      saveToStorage();
+    }
+
+    /***************************************************************************
+     * UTILITIES: SOUND, THEME, FULLSCREEN, BANNER
+     ***************************************************************************/
+    function toggleSound() {
+      state.soundEnabled = !state.soundEnabled;
+      updateSoundIcon();
+      if (state.soundEnabled) {
+        playChime('click');
+        if (state.isRunning) startAmbientSound();
+      } else {
+        stopAmbientSound();
+      }
+      saveToStorage();
+    }
+
+    function updateSoundIcon() {
+      const icon = document.getElementById('sound-icon');
+      const button = document.getElementById('sound-btn');
+      if (icon) icon.setAttribute('data-lucide', state.soundEnabled ? 'volume-2' : 'volume-x');
+      if (button) button.setAttribute('aria-pressed', String(state.soundEnabled));
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function toggleThemeMenu() {
+      const menu = document.getElementById('theme-menu');
+      const button = document.getElementById('theme-btn');
+      const willOpen = menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', !willOpen);
+      button.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) menu.querySelector('[role="menuitem"]')?.focus();
+    }
+
+    function setTheme(themeKey, labelName, shouldSave = true) {
+      state.theme = themeKey;
+      state.themeName = labelName;
+      document.body.setAttribute('data-theme', themeKey);
+      document.getElementById('current-theme-name').textContent = labelName;
+      document.getElementById('theme-menu').classList.add('hidden');
+      document.getElementById('theme-btn')?.setAttribute('aria-expanded', 'false');
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.content = getComputedStyle(document.body).getPropertyValue('--bg-canvas').trim() || '#0b0c0e';
+      if (shouldSave) saveToStorage();
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const icon = document.getElementById('fullscreen-icon');
+      icon.setAttribute('data-lucide', document.fullscreenElement ? 'minimize-2' : 'maximize-2');
+      lucide.createIcons();
+    });
+
+    function showCompletionBanner() {
+      showNotificationBanner(
+        `${state.currentSubject} Complete`,
+        `Saved for ${state.scholarName} (${Math.round(state.timerDurationSec / 60)}m · Streak: ${state.streakCount}d)`
+      );
+    }
+
+    function showNotificationBanner(titleText, subtitleText) {
+      const banner = document.getElementById('completion-banner');
+      const title = document.getElementById('banner-title');
+      const sub = document.getElementById('banner-subtitle');
+      title.textContent = titleText;
+      sub.textContent = subtitleText;
+      banner.classList.remove('hidden');
+      setTimeout(() => {
+        hideCompletionBanner();
+      }, 6500);
+    }
+
+    function hideCompletionBanner() {
+      document.getElementById('completion-banner').classList.add('hidden');
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>
